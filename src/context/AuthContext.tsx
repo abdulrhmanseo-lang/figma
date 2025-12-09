@@ -1,11 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-}
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+    User,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 
 interface Subscription {
     planName: string;
@@ -18,116 +21,112 @@ interface Subscription {
 
 interface AuthContextType {
     user: User | null;
+    loading: boolean;
     subscription: Subscription | null;
-    login: (email: string) => void;
-    register: (name: string, email: string) => void;
-    logout: () => void;
-    subscribe: (planName: string, price: string, durationDays: number) => void;
-    isLoading: boolean;
+    login: (email: string, password: string) => Promise<void>;
+    register: (name: string, email: string, password: string) => Promise<void>;
+    logout: () => Promise<void>;
+    subscribe: (plan: any) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error('useAuth must be used within an AuthProvider');
+    return context;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [subscription, setSubscription] = useState<Subscription | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
 
-    // Load state from localStorage on mount
     useEffect(() => {
-        const storedUser = localStorage.getItem('arkan_user');
-        const storedSub = localStorage.getItem('arkan_subscription');
-
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        if (storedSub) {
-            const sub = JSON.parse(storedSub);
-            // Check if expired
-            const today = new Date();
-            const end = new Date(sub.endDate);
-            if (end < today) {
-                sub.status = 'expired';
-                localStorage.setItem('arkan_subscription', JSON.stringify(sub));
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                // Fetch subscription data
+                try {
+                    const subDoc = await getDoc(doc(db, 'subscriptions', currentUser.uid));
+                    if (subDoc.exists()) {
+                        const subData = subDoc.data() as Subscription;
+                        // Check expiry
+                        if (new Date(subData.endDate) < new Date()) {
+                            setSubscription({ ...subData, status: 'expired' });
+                        } else {
+                            setSubscription(subData);
+                        }
+                    } else {
+                        setSubscription(null);
+                    }
+                } catch (error) {
+                    console.error("Error fetching subscription:", error);
+                    setSubscription(null);
+                }
+            } else {
+                setSubscription(null);
             }
-            setSubscription(sub);
-        }
-        setIsLoading(false);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
-    const login = (email: string) => {
-        // Simulating login - normally we'd verify password
-        // For this mock, we just recover the user or create a mock one if not found matches (simplified)
-        // Actually, let's just create a mock user session
-        const mockUser = {
-            id: 'user_' + Math.floor(Math.random() * 10000),
-            name: 'User', // In a real app we'd get this from backend
-            email: email,
-        };
-
-        // Check if we have a stored user with this email to persist name? 
-        // Simplified: Just set state
-        setUser(mockUser);
-        localStorage.setItem('arkan_user', JSON.stringify(mockUser));
-
-        // Redirect logic handled in component or based on subscription
-        // But context typically just updates state
+    const login = async (email: string, password: string) => {
+        await signInWithEmailAndPassword(auth, email, password);
     };
 
-    const register = (name: string, email: string) => {
-        const newUser = {
-            id: 'user_' + Math.floor(Math.random() * 10000),
-            name,
-            email,
-        };
-        setUser(newUser);
-        localStorage.setItem('arkan_user', JSON.stringify(newUser));
+    const register = async (name: string, email: string, password: string) => {
+        console.log("AuthContext: Attempting registration for", email);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            console.log("AuthContext: User created", userCredential.user.uid);
+
+            await updateProfile(userCredential.user, { displayName: name });
+            console.log("AuthContext: Profile updated");
+
+            // Create initial user doc
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+                name,
+                email,
+                createdAt: new Date().toISOString()
+            }, { merge: true });
+            console.log("AuthContext: Firestore doc created");
+        } catch (error) {
+            console.error("AuthContext: Registration FAILED", error);
+            throw error;
+        }
     };
 
-    const logout = () => {
-        setUser(null);
-        setSubscription(null);
-        localStorage.removeItem('arkan_user');
-        localStorage.removeItem('arkan_subscription');
-        navigate('/login');
+    const logout = async () => {
+        await signOut(auth);
     };
 
-    const subscribe = (planName: string, price: string, durationDays: number) => {
+    const subscribe = async (plan: any) => {
         if (!user) return;
 
         const startDate = new Date();
         const endDate = new Date();
-        endDate.setDate(startDate.getDate() + durationDays);
+        endDate.setDate(startDate.getDate() + 30); // 30 days default
 
-        const code = `ARK-${Math.floor(10000 + Math.random() * 90000)}-${planName.substring(0, 2).toUpperCase()}`;
-
-        const newSub: Subscription = {
-            planName,
-            price,
+        const subData: Subscription = {
+            planName: plan.name,
+            price: plan.price,
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
             status: 'active',
-            code
+            code: `ARK-${Math.floor(Math.random() * 100000)}-PRO`
         };
 
-        setSubscription(newSub);
-        localStorage.setItem('arkan_subscription', JSON.stringify(newSub));
-
-        navigate('/dashboard');
+        // Write to Firestore
+        await setDoc(doc(db, 'subscriptions', user.uid), subData);
+        setSubscription(subData);
     };
 
     return (
-        <AuthContext.Provider value={{ user, subscription, login, register, logout, subscribe, isLoading }}>
-            {children}
+        <AuthContext.Provider value={{ user, loading, subscription, login, register, logout, subscribe }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
 };

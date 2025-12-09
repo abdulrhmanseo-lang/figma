@@ -16,7 +16,10 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     // Check if subscription exists and is active
-    if (!subscription || subscription.status === 'expired') {
+    // EXCEPT if we are going to /profile or /renew or /pricing OR /dashboard (handled internally)
+    const isPublicAuthRoute = ['/profile', '/renew', '/pricing', '/dashboard'].includes(location.pathname);
+
+    if (!isPublicAuthRoute && (!subscription || subscription.status === 'expired')) {
         return <Navigate to="/pricing" replace state={{ message: "انتهت صلاحية اشتراكك، يرجى التجديد للمتابعة." }} />;
     }
 
