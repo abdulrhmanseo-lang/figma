@@ -1,5 +1,5 @@
 import { Building, MapPin, ArrowLeft } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 
 export function PropertiesTable() {
     const properties = [

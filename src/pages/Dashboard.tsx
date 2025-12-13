@@ -6,7 +6,7 @@ import { AlertsSection } from '../components/AlertsSection';
 import { AIRecommendation } from '../components/AIRecommendation';
 import { ContractsTable } from '../components/ContractsTable';
 import { PropertiesTable } from '../components/PropertiesTable';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import { Crown, Calendar, Hash, ArrowRight } from 'lucide-react';
 
 export function Dashboard() {
@@ -60,7 +60,7 @@ export function Dashboard() {
                 <Crown className="w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold mb-1">أهلاً بك، {user?.name || 'مستخدم'}!</h2>
+                <h2 className="text-2xl font-bold mb-1">أهلاً بك، {user?.displayName || 'مستخدم'}!</h2>
                 <div className="flex items-center gap-2 text-gray-300 text-sm">
                   <span className="bg-brand-blue/20 text-brand-blue px-2 py-0.5 rounded text-xs border border-brand-blue/30">{subscription.planName}</span>
                   <span>•</span>

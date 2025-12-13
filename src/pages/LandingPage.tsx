@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 import { SubscriptionModal } from '../components/ui/SubscriptionModal';
 import { FileText, Wrench, Receipt, Brain, Building, PieChart, ArrowRight, CheckCircle, Star, Zap, Building2, Check, ExternalLink, Mail, Phone, Send, TrendingUp } from 'lucide-react';
 

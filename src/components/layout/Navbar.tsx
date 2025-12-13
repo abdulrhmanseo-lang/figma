@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Home, Star, Building2, Info, MessageCircle, CreditCard, User as UserIcon, LogOut } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [

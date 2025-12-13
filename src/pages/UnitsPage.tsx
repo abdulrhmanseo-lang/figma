@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Layout } from '../components/layout/Layout';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { MapPin, Bed, Bath, Maximize, Filter, Search } from 'lucide-react';
 
 export const UnitsPage = () => {
@@ -43,8 +43,8 @@ export const UnitsPage = () => {
                                 key={f}
                                 onClick={() => setFilter(f)}
                                 className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f
-                                        ? 'bg-brand-dark text-white'
-                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                    ? 'bg-brand-dark text-white'
+                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                     }`}
                             >
                                 {f}
@@ -62,7 +62,7 @@ export const UnitsPage = () => {
                                 <div className="relative h-64 overflow-hidden">
                                     <img src={unit.img} alt={unit.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                     <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-white font-bold text-sm ${unit.status === 'متاح' ? 'bg-green-500' :
-                                            unit.status === 'مؤجر' ? 'bg-gray-500' : 'bg-orange-500'
+                                        unit.status === 'مؤجر' ? 'bg-gray-500' : 'bg-orange-500'
                                         }`}>
                                         {unit.status}
                                     </div>

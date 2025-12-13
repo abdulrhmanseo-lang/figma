@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout } from '../components/layout/Layout';
-import { Card } from '../components/ui/Card';
+import { Card } from '../components/ui/card';
 import { Target, Heart, Users, ShieldCheck } from 'lucide-react';
 
 export const AboutPage = () => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import { Layout } from '../components/layout/Layout';
 
 export const LoginPage = () => {
