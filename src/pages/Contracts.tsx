@@ -79,12 +79,11 @@ export function Contracts() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-brand-dark">إدارة العقود</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm lg:text-base text-gray-600">
             إدارة عقود الإيجار ({contracts.length} عقد)
           </p>
         </div>
@@ -96,68 +95,160 @@ export function Contracts() {
             setIsModalOpen(true);
           }}
           variant="gradient"
-          className="mt-4 md:mt-0"
+          className="w-full sm:w-auto text-sm lg:text-base"
         >
-          <Plus className="w-5 h-5 ml-2" />
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5 ml-2" />
           إضافة عقد جديد
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="text-2xl font-bold text-brand-dark">{stats.total}</div>
-          <div className="text-sm text-gray-500">إجمالي العقود</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-3 lg:p-4 border border-gray-100">
+          <div className="text-xl lg:text-2xl font-bold text-brand-dark">{stats.total}</div>
+          <div className="text-xs lg:text-sm text-gray-500">إجمالي العقود</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-          <div className="text-sm text-gray-500">عقود نشطة</div>
+        <div className="bg-white rounded-xl shadow-sm p-3 lg:p-4 border border-gray-100">
+          <div className="text-xl lg:text-2xl font-bold text-green-600">{stats.active}</div>
+          <div className="text-xs lg:text-sm text-gray-500">عقود نشطة</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="text-2xl font-bold text-amber-600">{stats.expiringSoon}</div>
-          <div className="text-sm text-gray-500">تنتهي قريباً</div>
+        <div className="bg-white rounded-xl shadow-sm p-3 lg:p-4 border border-gray-100">
+          <div className="text-xl lg:text-2xl font-bold text-amber-600">{stats.expiringSoon}</div>
+          <div className="text-xs lg:text-sm text-gray-500">تنتهي قريباً</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="text-lg font-bold text-brand-dark">{formatSAR(stats.totalMonthlyRent)}</div>
-          <div className="text-sm text-gray-500">الدخل الشهري المتوقع</div>
+        <div className="bg-white rounded-xl shadow-sm p-3 lg:p-4 border border-gray-100">
+          <div className="text-sm lg:text-lg font-bold text-brand-dark">{formatSAR(stats.totalMonthlyRent)}</div>
+          <div className="text-xs lg:text-sm text-gray-500">الدخل الشهري</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white rounded-xl shadow-sm p-3 lg:p-4 border border-gray-100">
+        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
             <input
               type="text"
-              placeholder="البحث بالمستأجر أو العقار أو الوحدة..."
+              placeholder="البحث بالمستأجر أو العقار..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+              className="w-full pr-9 lg:pr-10 pl-3 lg:pl-4 py-2.5 lg:py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue text-sm lg:text-base"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 lg:gap-2">
             {(['all', 'active', 'ended'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all ${statusFilter === status
+                className={`flex-1 py-2 px-2 rounded-xl text-xs lg:text-sm font-medium transition-all ${statusFilter === status
                   ? 'bg-brand-blue text-white'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                   }`}
               >
                 {status === 'all' ? 'الكل' :
-                  status === 'active' ? 'نشط' :
-                    status === 'ended' ? 'منتهي' : 'معلق'}
+                  status === 'active' ? 'نشط' : 'منتهي'}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Contracts Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+      {/* Mobile Cards View */}
+      <div className="lg:hidden space-y-3">
+        {filteredContracts.map((contract, index) => {
+          const days = daysRemaining(contract.endDate);
+          return (
+            <motion.div
+              key={contract.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.02 }}
+              className="bg-white rounded-xl shadow-sm p-4 border border-gray-100"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-white font-bold text-sm">
+                    {contract.tenantName.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{contract.tenantName}</p>
+                    <p className="text-xs text-gray-500">{contract.propertyName} - {contract.unitNo}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${contract.status === 'active' ? 'bg-green-100 text-green-700' :
+                  contract.status === 'ended' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                  {contract.status === 'active' ? 'نشط' : contract.status === 'ended' ? 'منتهي' : 'معلق'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+                <div>
+                  <p className="text-gray-500">مدة العقد</p>
+                  <p className="font-medium">{formatDateShort(contract.startDate)}</p>
+                  <p className="text-gray-400">إلى {formatDateShort(contract.endDate)}</p>
+                  {contract.status === 'active' && (
+                    <span className={`${days < 30 ? 'text-red-600' : days < 90 ? 'text-amber-600' : 'text-green-600'}`}>
+                      {days > 0 ? `متبقي ${days} يوم` : 'منتهي'}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-gray-500">الإيجار</p>
+                  <p className="font-bold text-brand-dark">{formatSAR(contract.rentAmount)}</p>
+                  <p className="text-gray-400">
+                    {contract.paymentFrequency === 'monthly' ? 'شهري' :
+                      contract.paymentFrequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-1">
+                  <Link to={`/app/payments?contract=${contract.id}`}>
+                    <button className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-brand-blue/10 rounded-lg">
+                      <CreditCard className="w-4 h-4" />
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setEditingContract(contract.id);
+                      setIsModalOpen(true);
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  {contract.status === 'active' && (
+                    <button
+                      onClick={() => handleEndContract(contract.id)}
+                      className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg"
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(contract.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <Link to={`/app/payments?contract=${contract.id}`}>
+                  <Button variant="outline" size="sm" className="text-xs px-2">
+                    <CreditCard className="w-3 h-3 ml-1" />
+                    الدفعات
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -166,7 +257,6 @@ export function Contracts() {
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">العقار / الوحدة</th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">مدة العقد</th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الإيجار</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الدفعات</th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الإجراءات</th>
               </tr>
@@ -210,28 +300,14 @@ export function Contracts() {
                       <p className="font-bold text-brand-dark">{formatSAR(contract.rentAmount)}</p>
                       <p className="text-xs text-gray-400">
                         {contract.paymentFrequency === 'monthly' ? 'شهري' :
-                          contract.paymentFrequency === 'quarterly' ? 'ربع سنوي' :
-                            contract.paymentFrequency === 'semi_annual' ? 'نصف سنوي' : 'سنوي'}
+                          contract.paymentFrequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full max-w-[60px]">
-                          <div
-                            className="h-full bg-green-500 rounded-full"
-                            style={{ width: '0%' }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">0/0</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${contract.status === 'active' ? 'bg-green-100 text-green-700' :
-                        contract.status === 'ended' ? 'bg-gray-100 text-gray-700' :
-                          'bg-amber-100 text-amber-700'
+                        contract.status === 'ended' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-700'
                         }`}>
-                        {contract.status === 'active' ? 'نشط' :
-                          contract.status === 'ended' ? 'منتهي' : 'معلق'}
+                        {contract.status === 'active' ? 'نشط' : contract.status === 'ended' ? 'منتهي' : 'معلق'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -283,6 +359,14 @@ export function Contracts() {
           </div>
         )}
       </div>
+
+      {/* Mobile Empty State */}
+      {filteredContracts.length === 0 && (
+        <div className="lg:hidden text-center py-12 bg-white rounded-xl shadow border border-gray-100">
+          <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-gray-500">لا توجد عقود</p>
+        </div>
+      )}
 
       <ContractModal
         isOpen={isModalOpen}

@@ -101,57 +101,49 @@ export function Reports() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                <Link to="/app" className="hover:text-brand-blue">لوحة التحكم</Link>
-                <span>/</span>
-                <span className="text-brand-dark font-medium">التقارير</span>
-            </div>
-
+        <div className="space-y-4 lg:space-y-6">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2" style={{ color: '#0A2A43' }}>
-                    التقارير
-                </h1>
-                <p className="text-gray-600">
+            <div className="mb-4 lg:mb-8">
+                <p className="text-sm lg:text-base text-gray-600">
                     تقارير مفصلة عن أداء العقارات والدفعات والصيانة
                 </p>
             </div>
 
             {/* Reports Tabs */}
-            <Tabs defaultValue="overdue" className="space-y-6">
-                <TabsList className="bg-white shadow rounded-xl p-1 w-full flex">
-                    <TabsTrigger value="overdue" className="flex-1 flex items-center justify-center gap-2">
-                        <AlertTriangle className="w-4 h-4" />
-                        المتأخرات
+            <Tabs defaultValue="overdue" className="space-y-4 lg:space-y-6">
+                <TabsList className="bg-white shadow rounded-xl p-1 w-full grid grid-cols-2 lg:grid-cols-4 gap-1">
+                    <TabsTrigger value="overdue" className="flex items-center justify-center gap-1 lg:gap-2 text-xs lg:text-sm py-2">
+                        <AlertTriangle className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <span>المتأخرات</span>
                     </TabsTrigger>
-                    <TabsTrigger value="occupancy" className="flex-1 flex items-center justify-center gap-2">
-                        <Building2 className="w-4 h-4" />
-                        الإشغال
+                    <TabsTrigger value="occupancy" className="flex items-center justify-center gap-1 lg:gap-2 text-xs lg:text-sm py-2">
+                        <Building2 className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <span>الإشغال</span>
                     </TabsTrigger>
-                    <TabsTrigger value="income" className="flex-1 flex items-center justify-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        الدخل
+                    <TabsTrigger value="income" className="flex items-center justify-center gap-1 lg:gap-2 text-xs lg:text-sm py-2">
+                        <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <span>الدخل</span>
                     </TabsTrigger>
-                    <TabsTrigger value="maintenance" className="flex-1 flex items-center justify-center gap-2">
-                        <Wrench className="w-4 h-4" />
-                        الصيانة
+                    <TabsTrigger value="maintenance" className="flex items-center justify-center gap-1 lg:gap-2 text-xs lg:text-sm py-2">
+                        <Wrench className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <span>الصيانة</span>
                     </TabsTrigger>
                 </TabsList>
 
                 {/* Overdue Payments Report */}
                 <TabsContent value="overdue">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-brand-dark">تقرير المتأخرات</h2>
-                                <p className="text-sm text-gray-500">
+                                <h2 className="text-lg lg:text-xl font-bold text-brand-dark">تقرير المتأخرات</h2>
+                                <p className="text-xs lg:text-sm text-gray-500">
                                     {overdueReport.length} دفعة متأخرة بإجمالي {formatSAR(overdueReport.reduce((s, p) => s + p.amount, 0))}
                                 </p>
                             </div>
                             <Button
                                 variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto text-xs lg:text-sm"
                                 onClick={() => exportToCSV(
                                     overdueReport.map(p => ({
                                         tenantName: p.tenantName,
@@ -163,12 +155,37 @@ export function Reports() {
                                     ['tenantName', 'unitNo', 'amount', 'dueDate']
                                 )}
                             >
-                                <Download className="w-4 h-4 ml-2" />
+                                <Download className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-2" />
                                 تصدير CSV
                             </Button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Mobile Cards */}
+                        <div className="lg:hidden space-y-3">
+                            {overdueReport.map(payment => {
+                                const daysLate = Math.abs(Math.floor((new Date().getTime() - new Date(payment.dueDate).getTime()) / (1000 * 60 * 60 * 24)));
+                                return (
+                                    <div key={payment.id} className="border border-gray-100 rounded-xl p-3">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p className="font-medium text-sm">{payment.tenantName}</p>
+                                                <p className="text-xs text-gray-500">{payment.unitNo}</p>
+                                            </div>
+                                            <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium">
+                                                {daysLate} يوم
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-gray-500">{formatDateShort(payment.dueDate)}</span>
+                                            <span className="font-bold text-red-600 text-sm">{formatSAR(payment.amount)}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -201,9 +218,9 @@ export function Reports() {
                         </div>
 
                         {overdueReport.length === 0 && (
-                            <div className="text-center py-12 text-gray-500">
-                                <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                                <p>لا توجد دفعات متأخرة 🎉</p>
+                            <div className="text-center py-8 lg:py-12 text-gray-500">
+                                <AlertTriangle className="w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-3 text-gray-300" />
+                                <p className="text-sm lg:text-base">لا توجد دفعات متأخرة 🎉</p>
                             </div>
                         )}
                     </div>
@@ -211,14 +228,16 @@ export function Reports() {
 
                 {/* Occupancy Report */}
                 <TabsContent value="occupancy">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-brand-dark">تقرير الإشغال</h2>
-                                <p className="text-sm text-gray-500">نسبة إشغال كل عقار</p>
+                                <h2 className="text-lg lg:text-xl font-bold text-brand-dark">تقرير الإشغال</h2>
+                                <p className="text-xs lg:text-sm text-gray-500">نسبة إشغال كل عقار</p>
                             </div>
                             <Button
                                 variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto text-xs lg:text-sm"
                                 onClick={() => exportToCSV(
                                     occupancyReport.map(p => ({
                                         name: p.name,
@@ -233,23 +252,23 @@ export function Reports() {
                                     ['name', 'city', 'total', 'rented', 'vacant', 'occupancy', 'monthlyIncome']
                                 )}
                             >
-                                <Download className="w-4 h-4 ml-2" />
+                                <Download className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-2" />
                                 تصدير CSV
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                             {occupancyReport.map(prop => (
-                                <div key={prop.id} className="border border-gray-100 rounded-xl p-4">
-                                    <h3 className="font-bold text-brand-dark mb-1">{prop.name}</h3>
-                                    <p className="text-sm text-gray-500 mb-3">{prop.city}</p>
+                                <div key={prop.id} className="border border-gray-100 rounded-xl p-3 lg:p-4">
+                                    <h3 className="font-bold text-brand-dark text-sm lg:text-base mb-1">{prop.name}</h3>
+                                    <p className="text-xs lg:text-sm text-gray-500 mb-3">{prop.city}</p>
 
                                     <div className="mb-3">
-                                        <div className="flex justify-between text-sm mb-1">
+                                        <div className="flex justify-between text-xs lg:text-sm mb-1">
                                             <span>نسبة الإشغال</span>
                                             <span className="font-bold">{prop.occupancy}%</span>
                                         </div>
-                                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div className="h-1.5 lg:h-2 bg-gray-200 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
                                                 style={{ width: `${prop.occupancy}%` }}
@@ -257,23 +276,23 @@ export function Reports() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                                        <div className="bg-green-50 rounded p-2">
+                                    <div className="grid grid-cols-3 gap-1.5 lg:gap-2 text-center text-[10px] lg:text-xs">
+                                        <div className="bg-green-50 rounded p-1.5 lg:p-2">
                                             <div className="font-bold text-green-600">{prop.rented}</div>
                                             <div className="text-gray-500">مؤجرة</div>
                                         </div>
-                                        <div className="bg-amber-50 rounded p-2">
+                                        <div className="bg-amber-50 rounded p-1.5 lg:p-2">
                                             <div className="font-bold text-amber-600">{prop.vacant}</div>
                                             <div className="text-gray-500">شاغرة</div>
                                         </div>
-                                        <div className="bg-gray-50 rounded p-2">
+                                        <div className="bg-gray-50 rounded p-1.5 lg:p-2">
                                             <div className="font-bold text-gray-600">{prop.maintenance}</div>
                                             <div className="text-gray-500">صيانة</div>
                                         </div>
                                     </div>
 
                                     <div className="mt-3 pt-3 border-t border-gray-100">
-                                        <div className="flex justify-between text-sm">
+                                        <div className="flex justify-between text-xs lg:text-sm">
                                             <span className="text-gray-500">الدخل الشهري:</span>
                                             <span className="font-bold text-brand-dark">{formatSAR(prop.monthlyIncome)}</span>
                                         </div>
@@ -286,26 +305,45 @@ export function Reports() {
 
                 {/* Income Report */}
                 <TabsContent value="income">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-brand-dark">تقرير الدخل الشهري</h2>
-                                <p className="text-sm text-gray-500">ملخص الدفعات المحصلة شهرياً</p>
+                                <h2 className="text-lg lg:text-xl font-bold text-brand-dark">تقرير الدخل الشهري</h2>
+                                <p className="text-xs lg:text-sm text-gray-500">ملخص الدفعات المحصلة شهرياً</p>
                             </div>
                             <Button
                                 variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto text-xs lg:text-sm"
                                 onClick={() => exportToCSV(
                                     incomeReport,
                                     'income_report',
                                     ['month', 'amount']
                                 )}
                             >
-                                <Download className="w-4 h-4 ml-2" />
+                                <Download className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-2" />
                                 تصدير CSV
                             </Button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Mobile Cards */}
+                        <div className="lg:hidden space-y-2">
+                            {incomeReport.map(row => (
+                                <div key={row.month} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <span className="font-medium text-sm">{row.month}</span>
+                                    <span className="font-bold text-green-600 text-sm">{formatSAR(row.amount)}</span>
+                                </div>
+                            ))}
+                            <div className="flex justify-between items-center p-3 bg-brand-blue/10 rounded-lg">
+                                <span className="font-bold text-sm">الإجمالي</span>
+                                <span className="font-bold text-brand-dark text-sm">
+                                    {formatSAR(incomeReport.reduce((s, r) => s + r.amount, 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -336,26 +374,51 @@ export function Reports() {
 
                 {/* Maintenance Report */}
                 <TabsContent value="maintenance">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-brand-dark">تقرير الصيانة</h2>
-                                <p className="text-sm text-gray-500">تكاليف الصيانة حسب العقار</p>
+                                <h2 className="text-lg lg:text-xl font-bold text-brand-dark">تقرير الصيانة</h2>
+                                <p className="text-xs lg:text-sm text-gray-500">تكاليف الصيانة حسب العقار</p>
                             </div>
                             <Button
                                 variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto text-xs lg:text-sm"
                                 onClick={() => exportToCSV(
                                     maintenanceReport,
                                     'maintenance_report',
                                     ['name', 'count', 'cost']
                                 )}
                             >
-                                <Download className="w-4 h-4 ml-2" />
+                                <Download className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-2" />
                                 تصدير CSV
                             </Button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Mobile Cards */}
+                        <div className="lg:hidden space-y-2">
+                            {maintenanceReport.map(row => (
+                                <div key={row.propertyId} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <p className="font-medium text-sm">{row.name}</p>
+                                        <p className="text-xs text-gray-500">{row.count} طلب</p>
+                                    </div>
+                                    <span className="font-bold text-brand-dark text-sm">{formatSAR(row.cost)}</span>
+                                </div>
+                            ))}
+                            <div className="flex justify-between items-center p-3 bg-brand-blue/10 rounded-lg">
+                                <div>
+                                    <span className="font-bold text-sm">الإجمالي</span>
+                                    <p className="text-xs text-gray-500">{maintenanceReport.reduce((s, r) => s + r.count, 0)} طلب</p>
+                                </div>
+                                <span className="font-bold text-brand-dark text-sm">
+                                    {formatSAR(maintenanceReport.reduce((s, r) => s + r.cost, 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -388,6 +451,5 @@ export function Reports() {
                 </TabsContent>
             </Tabs>
         </div>
-
     );
 }
