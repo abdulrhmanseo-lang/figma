@@ -68,29 +68,29 @@ export function Dashboard() {
 
   return (
     <motion.div
-      className="space-y-8"
+      className="space-y-6 lg:space-y-8"
       variants={container}
       initial="hidden"
       animate="show"
     >
       {/* Header */}
-      <motion.div variants={itemAnim} className="flex items-center justify-between">
+      <motion.div variants={itemAnim} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold text-brand-dark mb-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-brand-dark mb-1">
             مرحباً، <span className="text-brand-blue">{user?.displayName?.split(' ')[0] || 'أدمن'}</span>!
           </h1>
-          <p className="text-gray-500">لوحة التحكم الخاصة بك</p>
+          <p className="text-sm lg:text-base text-gray-500">لوحة التحكم الخاصة بك</p>
         </div>
       </motion.div>
 
       {/* Permissions Overview */}
-      <motion.div variants={itemAnim} className="space-y-4">
+      <motion.div variants={itemAnim} className="space-y-3 lg:space-y-4">
         <div className="flex items-center gap-2 px-1">
-          <ShieldCheck className="w-5 h-5 text-brand-blue" />
-          <h2 className="text-xl font-bold text-brand-dark">حالة الصلاحيات</h2>
+          <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-brand-blue" />
+          <h2 className="text-lg lg:text-xl font-bold text-brand-dark">حالة الصلاحيات</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
           {adminPermissions.map((perm) => {
             const config = moduleConfig[perm.module];
             const Icon = config?.icon || BarChart3;
@@ -100,29 +100,25 @@ export function Dashboard() {
               <motion.div
                 key={perm.module}
                 whileHover={{ y: -2 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between group overflow-hidden relative"
+                className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 lg:p-4 flex items-center justify-between group overflow-hidden relative"
               >
                 <div className="absolute left-0 top-0 w-1 h-full bg-brand-blue opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors">
-                    <Icon className="w-5 h-5" />
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors flex-shrink-0">
+                    <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-sm">{config?.label}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-800 text-xs lg:text-sm truncate">{config?.label}</h3>
+                    <p className="text-[10px] lg:text-xs text-gray-400 mt-0.5 truncate">
                       {isFullControl ? 'تحكم كامل' : 'صلاحيات محدودة'}
                     </p>
                   </div>
                 </div>
 
-                {isFullControl ? (
-                  <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                ) : (
-                  <div className="flex gap-1">
-                    {/* Simplified dots/indicators for partial access could go here if needed */}
+                {isFullControl && (
+                  <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                    <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
                 )}
               </motion.div>
@@ -132,9 +128,9 @@ export function Dashboard() {
       </motion.div>
 
       {/* Quick Access Grid */}
-      <motion.div variants={itemAnim} className="space-y-4">
-        <h2 className="text-xl font-bold text-brand-dark px-1">الوصول السريع</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <motion.div variants={itemAnim} className="space-y-3 lg:space-y-4">
+        <h2 className="text-lg lg:text-xl font-bold text-brand-dark px-1">الوصول السريع</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
           {navItems.filter(item => item.path !== '/app').map((item) => {
             const Icon = item.icon;
             return (
@@ -145,12 +141,12 @@ export function Dashboard() {
                 <motion.div
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="h-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer group flex flex-col items-center justify-center text-center gap-3"
+                  className="h-full bg-white p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer group flex flex-col items-center justify-center text-center gap-2 lg:gap-3"
                 >
-                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-blue/10 transition-colors duration-300">
-                    <Icon className="w-7 h-7 text-gray-500 group-hover:text-brand-blue transition-colors duration-300" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gray-50 rounded-xl lg:rounded-2xl flex items-center justify-center group-hover:bg-brand-blue/10 transition-colors duration-300">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-gray-500 group-hover:text-brand-blue transition-colors duration-300" />
                   </div>
-                  <h3 className="font-bold text-gray-700 group-hover:text-brand-dark transition-colors">{item.name}</h3>
+                  <h3 className="font-bold text-gray-700 group-hover:text-brand-dark transition-colors text-xs sm:text-sm lg:text-base">{item.name}</h3>
                 </motion.div>
               </Link>
             );
@@ -160,3 +156,4 @@ export function Dashboard() {
     </motion.div>
   );
 }
+

@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     BarChart3, Building2, Home, Users, FileText, CreditCard, Wrench,
-    Settings, ClipboardList, LogOut, ChevronRight, Bell, ShoppingCart
+    Settings, ClipboardList, LogOut, ChevronRight, Bell, ShoppingCart,
+    Menu, X
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -28,38 +30,67 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     const { pathname } = useLocation();
     const { user, logout } = useAuth();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const closeSidebar = () => setSidebarOpen(false);
 
     return (
         <div className="min-h-screen bg-slate-100 font-cairo" dir="rtl">
+            {/* Mobile Overlay */}
+            <AnimatePresence>
+                {sidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={closeSidebar}
+                        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Sidebar */}
-            <aside className="fixed right-0 top-0 h-screen w-64 bg-white shadow-xl z-40 flex flex-col">
+            <aside className={`
+                fixed right-0 top-0 h-screen w-72 lg:w-64 bg-white shadow-xl z-50 flex flex-col
+                transform transition-transform duration-300 ease-in-out
+                ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+            `}>
                 {/* Logo */}
-                <div className="p-6 border-b border-gray-100">
-                    <Link to="/app" className="flex items-center gap-2">
+                <div className="p-4 lg:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <Link to="/app" className="flex items-center gap-2" onClick={closeSidebar}>
                         <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-brand-purple rounded-xl flex items-center justify-center">
                             <Building2 className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-2xl font-bold bg-gradient-to-l from-brand-blue to-brand-purple bg-clip-text text-transparent">
+                        <span className="text-xl lg:text-2xl font-bold bg-gradient-to-l from-brand-blue to-brand-purple bg-clip-text text-transparent">
                             أركان
                         </span>
                     </Link>
+                    <button
+                        onClick={closeSidebar}
+                        className="lg:hidden p-2 hover:bg-gray-100 rounded-xl"
+                    >
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
                 </div>
 
+                <p className="px-4 py-2 text-xs text-gray-400 lg:hidden">بوابة الموظفين</p>
+
                 {/* Navigation */}
-                <nav className="flex-1 py-4 overflow-y-auto">
-                    <ul className="space-y-1 px-3">
+                <nav className="flex-1 py-2 lg:py-4 overflow-y-auto">
+                    <ul className="space-y-1 px-2 lg:px-3">
                         {sidebarLinks.map((link) => {
                             const isActive = pathname === link.path;
                             return (
                                 <li key={link.path}>
                                     <Link
                                         to={link.path}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                                        onClick={closeSidebar}
+                                        className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl transition-all text-sm lg:text-base ${isActive
                                             ? 'bg-gradient-to-l from-brand-blue to-brand-purple text-white shadow-lg'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-brand-dark'
                                             }`}
                                     >
-                                        <link.icon className="w-5 h-5" />
+                                        <link.icon className="w-5 h-5 flex-shrink-0" />
                                         <span className="font-medium">{link.name}</span>
                                         {isActive && <ChevronRight className="w-4 h-4 mr-auto" />}
                                     </Link>
@@ -70,13 +101,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </nav>
 
                 {/* User Info & Logout */}
-                <div className="p-4 border-t border-gray-100">
+                <div className="p-3 lg:p-4 border-t border-gray-100">
                     <div className="flex items-center gap-3 mb-3 px-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-brand-purple rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-9 lg:w-10 h-9 lg:h-10 bg-gradient-to-br from-brand-blue to-brand-purple rounded-full flex items-center justify-center text-white font-bold text-sm lg:text-base flex-shrink-0">
                             {user?.displayName?.charAt(0) || 'أ'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-brand-dark truncate">{user?.displayName || 'مستخدم'}</p>
+                            <p className="font-medium text-brand-dark truncate text-sm lg:text-base">{user?.displayName || 'مستخدم'}</p>
                             <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                         </div>
                     </div>
@@ -91,16 +122,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </aside>
 
             {/* Main Content */}
-            <div className="mr-64">
+            <div className="lg:mr-64">
                 {/* Top Bar */}
                 <header className="bg-white shadow-sm sticky top-0 z-30">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <div>
-                            <h1 className="text-xl font-bold text-brand-dark">
+                    <div className="flex items-center justify-between px-4 lg:px-6 py-3 lg:py-4">
+                        <div className="flex items-center gap-3">
+                            {/* Mobile Menu Button */}
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                            >
+                                <Menu className="w-6 h-6 text-gray-600" />
+                            </button>
+                            <h1 className="text-lg lg:text-xl font-bold text-brand-dark">
                                 {sidebarLinks.find(l => l.path === pathname)?.name || 'لوحة التحكم'}
                             </h1>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 lg:gap-4">
                             <button className="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
                                 <Bell className="w-5 h-5 text-gray-500" />
                                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -110,7 +148,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </header>
 
                 {/* Page Content */}
-                <main className="p-6">
+                <main className="p-3 lg:p-6">
                     <motion.div
                         key={pathname}
                         initial={{ opacity: 0, y: 10 }}
