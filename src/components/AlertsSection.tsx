@@ -1,35 +1,89 @@
-import { AlertCircle, Clock, Wrench } from 'lucide-react';
+import { AlertCircle, Clock, Wrench, ChevronLeft } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
+import { useData } from '../context/DataContext';
+import { formatSAR, daysRemaining } from '../lib/format';
+import { useMemo } from 'react';
 
 export function AlertsSection() {
+  const { contracts, payments, maintenanceRequests, getKPI } = useData();
+  const kpi = getKPI();
+
+  // Contracts expiring within 30 days
+  const expiringContracts = useMemo(() => {
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    return contracts
+      .filter(c => {
+        const endDate = new Date(c.endDate);
+        return c.status === 'active' && endDate <= thirtyDaysFromNow;
+      })
+      .slice(0, 3);
+  }, [contracts]);
+
+  // Overdue payments
+  const overduePayments = useMemo(() => {
+    return payments
+      .filter(p => p.status === 'overdue')
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .slice(0, 3);
+  }, [payments]);
+
+  // Urgent/new maintenance requests
+  const urgentMaintenance = useMemo(() => {
+    return maintenanceRequests
+      .filter(m => m.status === 'new' || (m.status === 'in_progress' && m.priority === 'urgent'))
+      .sort((a, b) => {
+        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      })
+      .slice(0, 3);
+  }, [maintenanceRequests]);
+
   const alerts = [
     {
       icon: Clock,
       title: 'عقود تنتهي قريباً',
-      description: '12 عقد تنتهي خلال 30 يوم',
+      count: kpi.contractsExpiringSoon,
+      items: expiringContracts.map(c => ({
+        text: `${c.tenantName} - وحدة ${c.unitNo}`,
+        subtext: `ينتهي في ${daysRemaining(c.endDate)} يوم`,
+      })),
       status: 'warning',
       color: 'from-amber-400 to-orange-400',
+      link: '/app/contracts',
     },
     {
       icon: AlertCircle,
       title: 'دفعات متأخرة',
-      description: '8 دفعات لم يتم تحصيلها',
+      count: kpi.overdueCount,
+      items: overduePayments.map(p => ({
+        text: `${p.tenantName} - ${formatSAR(p.amount)}`,
+        subtext: `وحدة ${p.unitNo}`,
+      })),
       status: 'danger',
       color: 'from-red-400 to-pink-400',
+      link: '/app/payments',
     },
     {
       icon: Wrench,
-      title: 'صيانة معلّقة',
-      description: '5 طلبات بحاجة إلى متابعة',
+      title: 'صيانة تحتاج متابعة',
+      count: urgentMaintenance.length,
+      items: urgentMaintenance.map(m => ({
+        text: m.title,
+        subtext: `${m.propertyName} - ${m.unitNo || 'عام'}`,
+      })),
       status: 'info',
       color: 'from-blue-400 to-cyan-400',
+      link: '/app/maintenance',
     },
   ];
 
   const statusColors = {
-    warning: 'bg-amber-100 border-amber-300',
-    danger: 'bg-red-100 border-red-300',
-    info: 'bg-blue-100 border-blue-300',
+    warning: 'bg-amber-50 border-amber-300 hover:bg-amber-100',
+    danger: 'bg-red-50 border-red-300 hover:bg-red-100',
+    info: 'bg-blue-50 border-blue-300 hover:bg-blue-100',
   };
 
   return (
@@ -45,25 +99,43 @@ export function AlertsSection() {
 
       <div className="space-y-4">
         {alerts.map((alert, index) => (
-          <div
+          <Link
             key={index}
-            className={`p-4 rounded-xl border-r-4 ${statusColors[alert.status as keyof typeof statusColors]} transition-all duration-200 hover:shadow-md cursor-pointer`}
+            to={alert.link}
+            className={`block p-4 rounded-xl border-r-4 ${statusColors[alert.status as keyof typeof statusColors]} transition-all duration-200 cursor-pointer`}
           >
             <div className="flex items-start gap-3">
               <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${alert.color} flex items-center justify-center flex-shrink-0`}>
                 <alert.icon className="w-5 h-5 text-white" />
               </div>
-              
-              <div className="flex-1">
-                <h4 className="font-semibold mb-1" style={{ color: '#0A2A43' }}>
-                  {alert.title}
-                </h4>
-                <p className="text-sm text-gray-600">
-                  {alert.description}
-                </p>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold" style={{ color: '#0A2A43' }}>
+                    {alert.title}
+                  </h4>
+                  <span className="text-sm font-bold text-gray-500">
+                    {alert.count}
+                  </span>
+                </div>
+
+                {alert.items.length > 0 ? (
+                  <div className="space-y-1">
+                    {alert.items.map((item, i) => (
+                      <div key={i} className="text-xs text-gray-600">
+                        <span className="font-medium">{item.text}</span>
+                        <span className="text-gray-400 mr-2">{item.subtext}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">لا توجد تنبيهات</p>
+                )}
               </div>
+
+              <ChevronLeft className="w-5 h-5 text-gray-400 flex-shrink-0" />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </motion.div>

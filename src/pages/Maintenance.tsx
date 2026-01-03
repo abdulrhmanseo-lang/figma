@@ -1,98 +1,259 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, Search, AlertTriangle, Clock, CheckCircle, XCircle, Wrench } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import { MaintenanceTicketCard } from '../components/MaintenanceTicketCard';
 import { MaintenanceModal } from '../components/MaintenanceModal';
+import { motion } from 'motion/react';
+import { Button } from '../components/ui/button';
+
+import { toast } from 'sonner';
+import { formatSAR, formatRelative } from '../lib/format';
+import type { MaintenanceStatus, MaintenancePriority } from '../types/database';
 
 export function Maintenance() {
-  const { maintenanceTickets } = useData();
+  const { maintenanceRequests, updateMaintenanceRequest, deleteMaintenanceRequest, properties } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<MaintenanceStatus | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<MaintenancePriority | 'all'>('all');
 
-  const columns = [
-    { id: 'pending', title: 'معلّقة', color: 'from-yellow-400 to-orange-400' },
-    { id: 'in-progress', title: 'جارية', color: 'from-blue-400 to-cyan-400' },
-    { id: 'completed', title: 'مكتملة', color: 'from-green-400 to-emerald-400' },
-    { id: 'overdue', title: 'متأخرة', color: 'from-red-400 to-pink-400' },
-  ];
+  // Stats
+  const stats = useMemo(() => ({
+    new: maintenanceRequests.filter(m => m.status === 'new').length,
+    in_progress: maintenanceRequests.filter(m => m.status === 'in_progress').length,
+    done: maintenanceRequests.filter(m => m.status === 'done').length,
+    totalCost: maintenanceRequests.reduce((s, m) => s + m.cost, 0),
+  }), [maintenanceRequests]);
 
-  const getTicketsForStatus = (status: string) => {
-    return maintenanceTickets.filter(t => t.status === status);
+  // Filtered requests
+  const filteredRequests = useMemo(() => {
+    return maintenanceRequests
+      .filter(m => {
+        const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
+        const matchesPriority = priorityFilter === 'all' || m.priority === priorityFilter;
+        return matchesStatus && matchesPriority;
+      })
+      .sort((a, b) => {
+        // Sort by priority then by date
+        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+        if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }, [maintenanceRequests, statusFilter, priorityFilter]);
+
+  const handleStatusChange = (id: string, newStatus: MaintenanceStatus) => {
+    updateMaintenanceRequest(id, { status: newStatus });
+    toast.success(newStatus === 'done' ? 'تم إتمام طلب الصيانة' : 'تم تحديث الحالة');
+  };
+
+  const getPriorityBadge = (priority: MaintenancePriority) => {
+    const badges = {
+      urgent: { bg: 'bg-red-100', text: 'text-red-700', label: 'عاجل' },
+      high: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'مرتفع' },
+      medium: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'متوسط' },
+      low: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'منخفض' },
+    };
+    const badge = badges[priority];
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>;
+  };
+
+  const getStatusIcon = (status: MaintenanceStatus) => {
+    const icons = {
+      new: <AlertTriangle className="w-4 h-4 text-amber-500" />,
+      in_progress: <Clock className="w-4 h-4 text-blue-500" />,
+      done: <CheckCircle className="w-4 h-4 text-green-500" />,
+      canceled: <XCircle className="w-4 h-4 text-gray-400" />,
+    };
+    return icons[status];
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#0A2A43' }}>
-            الصيانة
-          </h1>
           <p className="text-gray-600">
-            إدارة طلبات الصيانة والمتابعة
+            إدارة ومتابعة طلبات الصيانة ({maintenanceRequests.length} طلب)
           </p>
         </div>
-        
-        <button
+
+        <Button
           onClick={() => {
             setEditingTicket(null);
             setIsModalOpen(true);
           }}
-          className="mt-4 md:mt-0 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+          variant="gradient"
+          className="mt-4 md:mt-0"
         >
-          <Plus className="w-5 h-5" />
-          <span>طلب صيانة جديد</span>
-        </button>
+          <Plus className="w-5 h-5 ml-2" />
+          طلب صيانة جديد
+        </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {columns.map(column => (
-          <div key={column.id} className="bg-white rounded-xl shadow-lg p-4">
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${column.color} mb-2`} />
-            <p className="text-sm text-gray-600 mb-1">{column.title}</p>
-            <p className="text-2xl font-bold" style={{ color: '#0A2A43' }}>
-              {getTicketsForStatus(column.id).length}
-            </p>
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-dark">{stats.new}</p>
+              <p className="text-sm text-gray-500">جديدة</p>
+            </div>
           </div>
-        ))}
+        </div>
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-dark">{stats.in_progress}</p>
+              <p className="text-sm text-gray-500">قيد التنفيذ</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-dark">{stats.done}</p>
+              <p className="text-sm text-gray-500">مكتملة</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <Wrench className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-brand-dark">{formatSAR(stats.totalCost)}</p>
+              <p className="text-sm text-gray-500">إجمالي التكلفة</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {columns.map(column => (
-          <div key={column.id} className="bg-gray-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${column.color}`} />
-              <h3 className="font-bold" style={{ color: '#0A2A43' }}>
-                {column.title}
-              </h3>
-              <span className="mr-auto bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                {getTicketsForStatus(column.id).length}
-              </span>
-            </div>
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Status Filter */}
+          <div className="flex gap-2">
+            {(['all', 'new', 'in_progress', 'done'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all ${statusFilter === status
+                  ? 'bg-brand-blue text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+              >
+                {status === 'all' ? 'الكل' :
+                  status === 'new' ? 'جديدة' :
+                    status === 'in_progress' ? 'قيد التنفيذ' : 'مكتملة'}
+              </button>
+            ))}
+          </div>
 
-            <div className="space-y-3">
-              {getTicketsForStatus(column.id).map(ticket => (
-                <MaintenanceTicketCard
-                  key={ticket.id}
-                  ticket={ticket}
-                  onEdit={() => {
-                    setEditingTicket(ticket.id);
+          {/* Priority Filter */}
+          <div className="flex gap-2">
+            {(['all', 'urgent', 'high', 'medium', 'low'] as const).map((priority) => (
+              <button
+                key={priority}
+                onClick={() => setPriorityFilter(priority)}
+                className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all ${priorityFilter === priority
+                  ? 'bg-brand-dark text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+              >
+                {priority === 'all' ? 'كل الأولويات' :
+                  priority === 'urgent' ? 'عاجل' :
+                    priority === 'high' ? 'مرتفع' :
+                      priority === 'medium' ? 'متوسط' : 'منخفض'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Requests List */}
+      <div className="space-y-4">
+        {filteredRequests.map((request, index) => (
+          <motion.div
+            key={request.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.03 }}
+            className={`bg-white rounded-xl shadow-lg p-5 border-r-4 ${request.priority === 'urgent' ? 'border-red-500' :
+              request.priority === 'high' ? 'border-orange-500' :
+                request.priority === 'medium' ? 'border-amber-500' : 'border-gray-300'
+              }`}
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              {/* Main Info */}
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  {getStatusIcon(request.status)}
+                  <h3 className="font-bold text-brand-dark">{request.title}</h3>
+                  {getPriorityBadge(request.priority)}
+                </div>
+                <p className="text-sm text-gray-500 mb-2">{request.description}</p>
+                <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <span>{request.propertyName}</span>
+                  {request.unitNo && <span>• وحدة {request.unitNo}</span>}
+                  <span>• {formatRelative(request.createdAt)}</span>
+                  {request.assignedTo && <span>• المسؤول: {request.assignedTo}</span>}
+                </div>
+              </div>
+
+              {/* Cost & Actions */}
+              <div className="flex items-center gap-4">
+                {request.cost > 0 && (
+                  <div className="text-left">
+                    <p className="text-xs text-gray-400">التكلفة</p>
+                    <p className="font-bold text-brand-dark">{formatSAR(request.cost)}</p>
+                  </div>
+                )}
+
+                <select
+                  value={request.status}
+                  onChange={(e) => handleStatusChange(request.id, e.target.value as MaintenanceStatus)}
+                  className="text-sm rounded-lg px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                >
+                  <option value="new">جديد</option>
+                  <option value="in_progress">قيد التنفيذ</option>
+                  <option value="done">مكتمل</option>
+                  <option value="canceled">ملغي</option>
+                </select>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingTicket(request.id);
                     setIsModalOpen(true);
                   }}
-                />
-              ))}
-
-              {getTicketsForStatus(column.id).length === 0 && (
-                <div className="text-center py-8 text-gray-400 text-sm">
-                  لا توجد مهام
-                </div>
-              )}
+                >
+                  تعديل
+                </Button>
+              </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
+
+      {filteredRequests.length === 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+          <Wrench className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-gray-500">لا توجد طلبات صيانة</p>
+        </div>
+      )}
 
       {/* Maintenance Modal */}
       <MaintenanceModal
@@ -104,5 +265,6 @@ export function Maintenance() {
         ticketId={editingTicket}
       />
     </div>
+
   );
 }

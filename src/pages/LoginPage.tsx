@@ -7,34 +7,30 @@ import { Layout } from '../components/layout/Layout';
 export const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, subscription } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     // Custom success/error logic here? 
     // Usually login is just email in this mock
-    const handleSubmit = (e: React.FormEvent) => {
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        login(email);
+        setError('');
+        setLoading(true);
 
-        // Redirect logic
-        // Check if there's a stored active subscription? 
-        // The context updates asynchronously or synchronously? 
-        // We'll rely on the updated state if possible, or just force check localStorage/next render
-        // For simplicity:
-        // We can navigate to dashboard, and let Dashboard protect route handle the check?
-        // OR explicit check:
-        const storedSub = localStorage.getItem('arkan_subscription');
-        if (storedSub) {
-            const sub = JSON.parse(storedSub);
-            if (new Date(sub.endDate) > new Date()) {
-                navigate('/dashboard');
-                return;
-            }
+        try {
+            await login(email, password);
+            // Navigate to dashboard after successful login
+            navigate(location.state?.from?.pathname || '/app');
+        } catch (err: any) {
+            console.error('Login error:', err);
+            setError(err.message || 'حدث خطأ في تسجيل الدخول');
+        } finally {
+            setLoading(false);
         }
-
-        // Default callback
-        navigate(location.state?.from?.pathname || '/dashboard');
     };
 
     return (
@@ -61,7 +57,7 @@ export const LoginPage = () => {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-bold text-brand-dark">كلمة المرور</label>
-                                <Link to="/forgot-password" class="text-xs text-brand-blue hover:underline">
+                                <Link to="/forgot-password" className="text-xs text-brand-blue hover:underline">
                                     نسيت كلمة المرور؟
                                 </Link>
                             </div>
@@ -74,8 +70,14 @@ export const LoginPage = () => {
                             />
                         </div>
 
-                        <Button variant="gradient" className="w-full py-4 text-lg">
-                            تسجيل الدخول
+                        {error && (
+                            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
+                                {error}
+                            </div>
+                        )}
+
+                        <Button variant="gradient" className="w-full py-4 text-lg" disabled={loading}>
+                            {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                         </Button>
                     </form>
 
@@ -84,6 +86,16 @@ export const LoginPage = () => {
                             ليس لديك حساب؟{' '}
                             <Link to="/register" className="text-brand-blue font-bold hover:underline">
                                 إنشاء حساب جديد
+                            </Link>
+                        </p>
+                    </div>
+
+                    {/* Employee Portal Link */}
+                    <div className="text-center mt-4 pt-4 border-t border-gray-100">
+                        <p className="text-gray-500 text-sm">
+                            موظف؟{' '}
+                            <Link to="/employee/login" className="text-brand-purple font-bold hover:underline">
+                                الدخول من بوابة الموظفين ←
                             </Link>
                         </p>
                     </div>

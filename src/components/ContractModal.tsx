@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { toast } from 'sonner';
+import type { PaymentFrequency, ContractStatus } from '../types/database';
 
 interface ContractModalProps {
   isOpen: boolean;
@@ -10,250 +14,254 @@ interface ContractModalProps {
 }
 
 export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }: ContractModalProps) {
-  const { contracts, units, properties, addContract, updateContract } = useData();
+  const { contracts, units, tenants, addContract, updateContract } = useData();
   const [formData, setFormData] = useState({
-    tenantName: '',
-    tenantPhone: '',
-    propertyId: '',
-    propertyName: '',
+    tenantId: '',
     unitId: '',
-    unitNumber: '',
     startDate: '',
     endDate: '',
-    monthlyRent: 0,
-    status: 'active' as 'active' | 'pending' | 'expired',
-    pdfUrl: '',
+    rentAmount: 0,
+    paymentFrequency: 'monthly' as PaymentFrequency,
+    status: 'active' as ContractStatus,
+    deposit: 0,
+    notes: '',
   });
+
+  // Available units (vacant only for new contracts)
+  const availableUnits = contractId
+    ? units
+    : units.filter(u => u.status === 'vacant');
 
   useEffect(() => {
     if (contractId) {
       const contract = contracts.find(c => c.id === contractId);
       if (contract) {
-        setFormData(contract);
-      }
-    } else if (preselectedUnitId) {
-      const unit = units.find(u => u.id === preselectedUnitId);
-      if (unit) {
         setFormData({
-          ...formData,
-          propertyId: unit.propertyId,
-          propertyName: unit.propertyName,
-          unitId: unit.id,
-          unitNumber: unit.unitNumber,
-          monthlyRent: unit.price,
+          tenantId: contract.tenantId,
+          unitId: contract.unitId,
+          startDate: contract.startDate,
+          endDate: contract.endDate,
+          rentAmount: contract.rentAmount,
+          paymentFrequency: contract.paymentFrequency,
+          status: contract.status,
+          deposit: contract.deposit || 0,
+          notes: contract.notes || '',
         });
       }
+    } else {
+      // Reset form for new contract
+      const unit = preselectedUnitId ? units.find(u => u.id === preselectedUnitId) : null;
+      setFormData({
+        tenantId: '',
+        unitId: preselectedUnitId || '',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        rentAmount: unit?.rentAmount || 0,
+        paymentFrequency: 'monthly',
+        status: 'active',
+        deposit: 0,
+        notes: '',
+      });
     }
-  }, [contractId, preselectedUnitId, contracts, units]);
+  }, [contractId, preselectedUnitId, contracts, units, isOpen]);
 
-  const handleUnitChange = (selectedUnitId: string) => {
-    const unit = units.find(u => u.id === selectedUnitId);
+  const handleUnitChange = (unitId: string) => {
+    const unit = units.find(u => u.id === unitId);
     if (unit) {
       setFormData({
         ...formData,
-        propertyId: unit.propertyId,
-        propertyName: unit.propertyName,
-        unitId: unit.id,
-        unitNumber: unit.unitNumber,
-        monthlyRent: unit.price,
+        unitId,
+        rentAmount: unit.rentAmount,
       });
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!formData.tenantId || !formData.unitId) {
+      toast.error('الرجاء اختيار المستأجر والوحدة');
+      return;
+    }
+
+    if (!formData.startDate || !formData.endDate) {
+      toast.error('الرجاء تحديد تواريخ العقد');
+      return;
+    }
+
+    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
+      toast.error('تاريخ النهاية يجب أن يكون بعد تاريخ البداية');
+      return;
+    }
+
     if (contractId) {
       updateContract(contractId, formData);
+      toast.success('تم تحديث العقد بنجاح');
     } else {
       addContract(formData);
+      toast.success('تم إنشاء العقد وجدول الدفعات');
     }
-    
+
     onClose();
   };
 
-  const handlePdfUpload = () => {
-    // Mock PDF upload
-    setFormData({
-      ...formData,
-      pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    });
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold" style={{ color: '#0A2A43' }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
             {contractId ? 'تعديل العقد' : 'إنشاء عقد جديد'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Tenant Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                اسم المستأجر
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.tenantName}
-                onChange={(e) => setFormData({ ...formData, tenantName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="محمد أحمد"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الجوال
-              </label>
-              <input
-                type="tel"
-                required
-                value={formData.tenantPhone}
-                onChange={(e) => setFormData({ ...formData, tenantPhone: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="05xxxxxxxx"
-              />
-            </div>
-          </div>
-
-          {/* Unit Selection */}
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {/* Tenant Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              الوحدة
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              المستأجر <span className="text-red-500">*</span>
             </label>
             <select
-              required
-              value={formData.unitId}
-              onChange={(e) => handleUnitChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={formData.tenantId}
+              onChange={(e) => setFormData({ ...formData, tenantId: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
             >
-              <option value="">اختر الوحدة</option>
-              {units.map(unit => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.propertyName} - {unit.unitNumber} ({unit.type})
+              <option value="">اختر المستأجر</option>
+              {tenants.map(tenant => (
+                <option key={tenant.id} value={tenant.id}>
+                  {tenant.fullName} - {tenant.phone}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Unit Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              الوحدة <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.unitId}
+              onChange={(e) => handleUnitChange(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
+              disabled={!!contractId}
+            >
+              <option value="">اختر الوحدة</option>
+              {availableUnits.map(unit => (
+                <option key={unit.id} value={unit.id}>
+                  {unit.propertyName} - {unit.unitNo} ({unit.rentAmount.toLocaleString()} ر.س)
+                </option>
+              ))}
+            </select>
+            {!contractId && availableUnits.length === 0 && (
+              <p className="text-sm text-amber-600 mt-1">لا توجد وحدات شاغرة. أضف وحدات جديدة أولاً.</p>
+            )}
+          </div>
+
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                تاريخ البداية
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                تاريخ البداية <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
-                required
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                تاريخ النهاية
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                تاريخ النهاية <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
-                required
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
           </div>
 
-          {/* Rent and Status */}
+          {/* Rent and Frequency */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                الإيجار الشهري (ر.س)
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                قيمة الإيجار (ر.س) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                required
                 min="0"
-                value={formData.monthlyRent}
-                onChange={(e) => setFormData({ ...formData, monthlyRent: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={formData.rentAmount}
+                onChange={(e) => setFormData({ ...formData, rentAmount: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                حالة العقد
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                دورية الدفع <span className="text-red-500">*</span>
               </label>
               <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={formData.paymentFrequency}
+                onChange={(e) => setFormData({ ...formData, paymentFrequency: e.target.value as PaymentFrequency })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
               >
-                <option value="active">نشط</option>
-                <option value="pending">معلق</option>
-                <option value="expired">منتهي</option>
+                <option value="monthly">شهري</option>
+                <option value="quarterly">ربع سنوي</option>
+                <option value="yearly">سنوي</option>
               </select>
             </div>
           </div>
 
-          {/* PDF Upload */}
+          {/* Deposit */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ملف العقد (PDF)
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              مبلغ التأمين (ر.س)
             </label>
-            
-            {formData.pdfUrl ? (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
-                <span className="text-green-700 text-sm">تم رفع ملف العقد بنجاح</span>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, pdfUrl: '' })}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handlePdfUpload}
-                className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
-              >
-                <Upload className="w-5 h-5" />
-                <span>رفع ملف PDF</span>
-              </button>
-            )}
+            <input
+              type="number"
+              min="0"
+              value={formData.deposit}
+              onChange={(e) => setFormData({ ...formData, deposit: parseInt(e.target.value) || 0 })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+              placeholder="اختياري"
+            />
           </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              ملاحظات
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+              placeholder="أي ملاحظات إضافية..."
+            />
+          </div>
+
+          {/* Info Box */}
+          {!contractId && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
+              💡 سيتم إنشاء جدول دفعات تلقائياً بناءً على دورية الدفع المختارة
+            </div>
+          )}
 
           {/* Submit Buttons */}
           <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-            >
-              {contractId ? 'تحديث العقد' : 'إنشاء العقد'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
+            <Button type="submit" variant="gradient" className="flex-1">
+              {contractId ? 'حفظ التعديلات' : 'إنشاء العقد'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
               إلغاء
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

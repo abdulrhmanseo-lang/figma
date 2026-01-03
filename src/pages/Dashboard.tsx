@@ -1,121 +1,162 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { StatsCards } from '../components/StatsCards';
-import { Charts } from '../components/Charts';
-import { AlertsSection } from '../components/AlertsSection';
-import { AIRecommendation } from '../components/AIRecommendation';
-import { ContractsTable } from '../components/ContractsTable';
-import { PropertiesTable } from '../components/PropertiesTable';
-import { Button } from '../components/ui/button';
-import { Crown, Calendar, Hash, ArrowRight } from 'lucide-react';
+import { motion } from 'motion/react';
+import {
+  Building2, Home, Users, FileText, CreditCard, Wrench,
+  BarChart3, ShoppingCart, ClipboardList, ShieldCheck, CheckCircle2
+} from 'lucide-react';
+
+const navItems = [
+  { name: 'نظرة عامة', path: '/app', icon: BarChart3 },
+  { name: 'العقارات', path: '/app/properties', icon: Building2 },
+  { name: 'الوحدات', path: '/app/units', icon: Home },
+  { name: 'المستأجرين', path: '/app/tenants', icon: Users },
+  { name: 'العقود', path: '/app/contracts', icon: FileText },
+  { name: 'الدفعات', path: '/app/payments', icon: CreditCard },
+  { name: 'الصيانة', path: '/app/maintenance', icon: Wrench },
+  { name: 'المبيعات', path: '/app/sales', icon: ShoppingCart },
+  { name: 'المهام', path: '/app/tasks', icon: ClipboardList },
+  { name: 'التقارير', path: '/app/reports', icon: BarChart3 },
+  { name: 'الموظفين', path: '/app/employees', icon: Users },
+];
+
+const moduleConfig: Record<string, { label: string; icon: any }> = {
+  properties: { label: 'العقارات', icon: Building2 },
+  units: { label: 'الوحدات', icon: Home },
+  tenants: { label: 'المستأجرين', icon: Users },
+  contracts: { label: 'العقود', icon: FileText },
+  payments: { label: 'الدفعات', icon: CreditCard },
+  maintenance: { label: 'الصيانة', icon: Wrench },
+  reports: { label: 'التقارير', icon: BarChart3 },
+  sales: { label: 'المبيعات', icon: ShoppingCart },
+  employees: { label: 'الموظفين', icon: Users },
+  tasks: { label: 'المهام', icon: ClipboardList },
+};
+
+// Admin has all permissions
+const adminPermissions = [
+  { module: 'properties', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'units', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'tenants', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'contracts', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'payments', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'maintenance', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'sales', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'tasks', actions: ['view', 'create', 'edit', 'delete'] },
+  { module: 'reports', actions: ['view'] },
+  { module: 'employees', actions: ['view', 'create', 'edit', 'delete'] },
+];
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemAnim = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
 
 export function Dashboard() {
-  const { user, subscription } = useAuth();
-
-  // UI for non-subscribed users (or expired)
-  if (!subscription || subscription.status === 'expired') {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 pt-20">
-        <div className="max-w-lg w-full bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-blue to-brand-purple" />
-
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">عذراً، الحساب غير نشط</h2>
-          <p className="text-gray-500 mb-8">
-            للوصول إلى لوحة التحكم وإدارة عقاراتك، يجب أن يكون لديك اشتراك فعال.
-            <br />
-            انتهت صلاحية اشتراكك أو لم تقم بتفعيله بعد.
-          </p>
-
-          <Link to="/pricing">
-            <Button className="w-full py-3 text-lg group bg-brand-primary text-white hover:bg-brand-dark">
-              اشترك الآن واستعد الوصول
-              <ArrowRight className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-
-          <div className="mt-6 text-sm text-gray-400">
-            هل تعتقد أن هناك خطأ؟ <Link to="/contact" className="text-brand-blue hover:underline">تواصل مع الدعم</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const { user } = useAuth();
+  const isFullAdmin = true; // Assuming admin for now
 
   return (
-    <div className="pt-24 pb-12 max-w-7xl mx-auto px-6">
-      {/* Subscription Status Header */}
-      {subscription && (
-        <div className="bg-gradient-to-r from-brand-dark to-slate-900 rounded-3xl p-6 mb-8 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-brand-blue/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+    <motion.div
+      className="space-y-8"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      {/* Header */}
+      <motion.div variants={itemAnim} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-brand-dark mb-1">
+            مرحباً، <span className="text-brand-blue">{user?.displayName?.split(' ')[0] || 'أدمن'}</span>!
+          </h1>
+          <p className="text-gray-500">لوحة التحكم الخاصة بك</p>
+        </div>
+      </motion.div>
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-brand-accent">
-                <Crown className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-1">أهلاً بك، {user?.displayName || 'مستخدم'}!</h2>
-                <div className="flex items-center gap-2 text-gray-300 text-sm">
-                  <span className="bg-brand-blue/20 text-brand-blue px-2 py-0.5 rounded text-xs border border-brand-blue/30">{subscription.planName}</span>
-                  <span>•</span>
-                  <span className="text-green-400">الاشتراك نشط</span>
+      {/* Permissions Overview */}
+      <motion.div variants={itemAnim} className="space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <ShieldCheck className="w-5 h-5 text-brand-blue" />
+          <h2 className="text-xl font-bold text-brand-dark">حالة الصلاحيات</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {adminPermissions.map((perm) => {
+            const config = moduleConfig[perm.module];
+            const Icon = config?.icon || BarChart3;
+            const isFullControl = perm.actions.length >= 4;
+
+            return (
+              <motion.div
+                key={perm.module}
+                whileHover={{ y: -2 }}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between group overflow-hidden relative"
+              >
+                <div className="absolute left-0 top-0 w-1 h-full bg-brand-blue opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 text-sm">{config?.label}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {isFullControl ? 'تحكم كامل' : 'صلاحيات محدودة'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap gap-4">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl px-5 py-3 border border-white/10">
-                <div className="text-gray-400 text-xs mb-1 flex items-center gap-1">
-                  <Hash className="w-3 h-3" />
-                  كود الاشتراك
-                </div>
-                <div className="font-mono text-lg tracking-wider text-brand-accent">{subscription.code}</div>
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl px-5 py-3 border border-white/10">
-                <div className="text-gray-400 text-xs mb-1 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  ينتهي في
-                </div>
-                <div className="font-medium text-lg">
-                  {new Date(subscription.endDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
-              </div>
-            </div>
-          </div>
+                {isFullControl ? (
+                  <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                ) : (
+                  <div className="flex gap-1">
+                    {/* Simplified dots/indicators for partial access could go here if needed */}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
-      )}
+      </motion.div>
 
-      <StatsCards />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2">
-          <Charts />
+      {/* Quick Access Grid */}
+      <motion.div variants={itemAnim} className="space-y-4">
+        <h2 className="text-xl font-bold text-brand-dark px-1">الوصول السريع</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {navItems.filter(item => item.path !== '/app').map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer group flex flex-col items-center justify-center text-center gap-3"
+                >
+                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-blue/10 transition-colors duration-300">
+                    <Icon className="w-7 h-7 text-gray-500 group-hover:text-brand-blue transition-colors duration-300" />
+                  </div>
+                  <h3 className="font-bold text-gray-700 group-hover:text-brand-dark transition-colors">{item.name}</h3>
+                </motion.div>
+              </Link>
+            );
+          })}
         </div>
-        <div className="lg:col-span-1">
-          <PropertiesTable />
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <ContractsTable />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-1">
-          <AlertsSection />
-        </div>
-
-        <div className="lg:col-span-2">
-          <AIRecommendation />
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

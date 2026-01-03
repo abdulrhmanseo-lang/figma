@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Upload } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { toast } from 'sonner';
+import type { MaintenanceStatus, MaintenancePriority } from '../types/database';
 
 interface MaintenanceModalProps {
   isOpen: boolean;
@@ -9,232 +12,253 @@ interface MaintenanceModalProps {
 }
 
 export function MaintenanceModal({ isOpen, onClose, ticketId }: MaintenanceModalProps) {
-  const { maintenanceTickets, units, addMaintenanceTicket, updateMaintenanceTicket } = useData();
+  const { maintenanceRequests, units, properties, addMaintenanceRequest, updateMaintenanceRequest } = useData();
   const [formData, setFormData] = useState({
     propertyId: '',
-    propertyName: '',
     unitId: '',
-    unitNumber: '',
     title: '',
     description: '',
-    status: 'pending' as 'pending' | 'in-progress' | 'completed' | 'overdue',
-    priority: 'medium' as 'low' | 'medium' | 'high',
+    status: 'new' as MaintenanceStatus,
+    priority: 'medium' as MaintenancePriority,
     assignedTo: '',
-    createdDate: new Date().toISOString().split('T')[0],
-    images: [] as string[],
+    cost: 0,
   });
 
   useEffect(() => {
     if (ticketId) {
-      const ticket = maintenanceTickets.find(t => t.id === ticketId);
+      const ticket = maintenanceRequests.find(t => t.id === ticketId);
       if (ticket) {
-        setFormData(ticket);
+        setFormData({
+          propertyId: ticket.propertyId,
+          unitId: ticket.unitId || '',
+          title: ticket.title,
+          description: ticket.description,
+          status: ticket.status,
+          priority: ticket.priority,
+          assignedTo: ticket.assignedTo || '',
+          cost: ticket.cost || 0,
+        });
       }
     } else {
       setFormData({
         propertyId: '',
-        propertyName: '',
         unitId: '',
-        unitNumber: '',
         title: '',
         description: '',
-        status: 'pending',
+        status: 'new',
         priority: 'medium',
         assignedTo: '',
-        createdDate: new Date().toISOString().split('T')[0],
-        images: [],
+        cost: 0,
       });
     }
-  }, [ticketId, maintenanceTickets]);
+  }, [ticketId, maintenanceRequests, isOpen]);
 
-  const handleUnitChange = (unitId: string) => {
-    const unit = units.find(u => u.id === unitId);
-    if (unit) {
-      setFormData({
-        ...formData,
-        propertyId: unit.propertyId,
-        propertyName: unit.propertyName,
-        unitId: unit.id,
-        unitNumber: unit.unitNumber,
-      });
-    }
+  const handlePropertyChange = (propertyId: string) => {
+    setFormData({
+      ...formData,
+      propertyId,
+      unitId: '', // Reset unit when property changes
+    });
+  };
+
+  const getPropertyUnits = (propertyId: string) => {
+    return units.filter(u => u.propertyId === propertyId);
+  };
+
+  const getPropertyName = (propertyId: string) => {
+    return properties.find(p => p.id === propertyId)?.name || '';
+  };
+
+  const getUnitNo = (unitId: string) => {
+    return units.find(u => u.id === unitId)?.unitNo;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (ticketId) {
-      updateMaintenanceTicket(ticketId, formData);
-    } else {
-      addMaintenanceTicket(formData);
+
+    if (!formData.propertyId || !formData.title) {
+      toast.error('الرجاء إدخال العقار وعنوان المشكلة');
+      return;
     }
-    
+
+    const submitData = {
+      propertyId: formData.propertyId,
+      propertyName: getPropertyName(formData.propertyId),
+      unitId: formData.unitId || undefined,
+      unitNo: formData.unitId ? getUnitNo(formData.unitId) : undefined,
+      title: formData.title,
+      description: formData.description,
+      status: formData.status,
+      priority: formData.priority,
+      assignedTo: formData.assignedTo || undefined,
+      cost: formData.cost,
+      requestedBy: 'admin' as const,
+    };
+
+    if (ticketId) {
+      updateMaintenanceRequest(ticketId, submitData);
+      toast.success('تم تحديث طلب الصيانة');
+    } else {
+      addMaintenanceRequest(submitData);
+      toast.success('تم إنشاء طلب الصيانة');
+    }
+
     onClose();
   };
 
-  const handleImageUpload = () => {
-    const mockImages = [
-      'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400',
-      'https://images.unsplash.com/photo-1504253492562-afccb8053add?w=400',
-    ];
-    setFormData({ ...formData, images: [...formData.images, mockImages[Math.floor(Math.random() * mockImages.length)]] });
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold" style={{ color: '#0A2A43' }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
             {ticketId ? 'تعديل طلب الصيانة' : 'طلب صيانة جديد'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {/* Property Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              الوحدة
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              العقار <span className="text-red-500">*</span>
             </label>
             <select
-              required
-              value={formData.unitId}
-              onChange={(e) => handleUnitChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={formData.propertyId}
+              onChange={(e) => handlePropertyChange(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
             >
-              <option value="">اختر الوحدة</option>
-              {units.map(unit => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.propertyName} - {unit.unitNumber}
+              <option value="">اختر العقار</option>
+              {properties.map(property => (
+                <option key={property.id} value={property.id}>
+                  {property.name} - {property.city}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Unit Selection (Optional) */}
+          {formData.propertyId && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الوحدة (اختياري)
+              </label>
+              <select
+                value={formData.unitId}
+                onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
+              >
+                <option value="">صيانة عامة للعقار</option>
+                {getPropertyUnits(formData.propertyId).map(unit => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.unitNo}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              عنوان المشكلة
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              عنوان المشكلة <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               placeholder="مثال: تسريب في الحمام"
             />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               الوصف
             </label>
             <textarea
-              required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               placeholder="وصف تفصيلي للمشكلة..."
             />
           </div>
 
+          {/* Priority and Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 الأولوية
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as MaintenancePriority })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
               >
-                <option value="low">عادي</option>
+                <option value="low">منخفض</option>
                 <option value="medium">متوسط</option>
-                <option value="high">عاجل</option>
+                <option value="high">مرتفع</option>
+                <option value="urgent">عاجل</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 الحالة
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as MaintenanceStatus })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
               >
-                <option value="pending">معلّقة</option>
-                <option value="in-progress">جارية</option>
-                <option value="completed">مكتملة</option>
-                <option value="overdue">متأخرة</option>
+                <option value="new">جديد</option>
+                <option value="in_progress">قيد التنفيذ</option>
+                <option value="done">مكتمل</option>
+                <option value="canceled">ملغي</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              المسؤول عن الصيانة
-            </label>
-            <input
-              type="text"
-              value={formData.assignedTo}
-              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="اسم الفني أو الفريق"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              الصور
-            </label>
-            
-            <div className="grid grid-cols-4 gap-3 mb-3">
-              {formData.images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img src={image} alt={`صورة ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, images: formData.images.filter((_, i) => i !== index) })}
-                    className="absolute top-1 left-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
+          {/* Assigned To and Cost */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                المسؤول
+              </label>
+              <input
+                type="text"
+                value={formData.assignedTo}
+                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                placeholder="اسم الفني"
+              />
             </div>
 
-            <button
-              type="button"
-              onClick={handleImageUpload}
-              className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
-            >
-              <Upload className="w-5 h-5" />
-              <span>رفع صورة</span>
-            </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                التكلفة (ر.س)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.cost}
+                onChange={(e) => setFormData({ ...formData, cost: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+              />
+            </div>
           </div>
 
+          {/* Submit Buttons */}
           <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-            >
-              {ticketId ? 'تحديث الطلب' : 'إنشاء الطلب'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
+            <Button type="submit" variant="gradient" className="flex-1">
+              {ticketId ? 'حفظ التعديلات' : 'إنشاء الطلب'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
               إلغاء
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

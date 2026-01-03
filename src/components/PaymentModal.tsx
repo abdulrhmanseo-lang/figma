@@ -8,7 +8,7 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
-  const { contracts, addInvoice } = useData();
+  const { contracts } = useData();
   const [formData, setFormData] = useState({
     contractId: '',
     tenantName: '',
@@ -19,11 +19,11 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const handleContractChange = (contractId: string) => {
     const contract = contracts.find(c => c.id === contractId);
     if (contract) {
-      const tax = contract.monthlyRent * 0.15; // 15% VAT
+      const tax = contract.rentAmount * 0.15; // 15% VAT
       setFormData({
         contractId,
         tenantName: contract.tenantName,
-        amount: contract.monthlyRent,
+        amount: contract.rentAmount,
         tax,
       });
     }
@@ -31,18 +31,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const invoice = {
-      invoiceNumber: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
-      tenantName: formData.tenantName,
-      amount: formData.amount,
-      tax: formData.tax,
-      total: formData.amount + formData.tax,
-      status: 'pending' as const,
-      dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    };
-    
-    addInvoice(invoice);
+    // TODO: Implement invoice creation when invoice feature is added
     onClose();
     alert('تم إنشاء الفاتورة بنجاح');
   };
@@ -74,7 +63,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               <option value="">اختر العقد</option>
               {contracts.filter(c => c.status === 'active').map(contract => (
                 <option key={contract.id} value={contract.id}>
-                  {contract.tenantName} - {contract.unitNumber}
+                  {contract.tenantName} - {contract.unitNo}
                 </option>
               ))}
             </select>

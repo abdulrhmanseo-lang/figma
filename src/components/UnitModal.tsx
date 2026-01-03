@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Upload } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { toast } from 'sonner';
+import type { UnitStatus, UnitType } from '../types/database';
 
 interface UnitModalProps {
   isOpen: boolean;
@@ -9,20 +12,30 @@ interface UnitModalProps {
   unitId: string | null;
 }
 
+const UNIT_TYPES: { value: UnitType; label: string }[] = [
+  { value: 'apartment', label: 'شقة' },
+  { value: 'studio', label: 'ستوديو' },
+  { value: 'office', label: 'مكتب' },
+  { value: 'shop', label: 'محل تجاري' },
+  { value: 'warehouse', label: 'مستودع' },
+  { value: 'villa', label: 'فيلا' },
+];
+
 export function UnitModal({ isOpen, onClose, propertyId, unitId }: UnitModalProps) {
   const { units, properties, addUnit, updateUnit } = useData();
   const [formData, setFormData] = useState({
     propertyId: propertyId || '',
-    propertyName: '',
-    unitNumber: '',
-    type: '',
-    price: 0,
-    status: 'available' as 'available' | 'rented',
-    area: 0,
+    unitNo: '',
+    type: 'apartment' as UnitType,
+    floor: '',
+    rentAmount: 0,
+    status: 'vacant' as UnitStatus,
+    areaSqm: 0,
     bedrooms: 0,
     bathrooms: 0,
-    images: [] as string[],
   });
+
+  const selectedProperty = properties.find(p => p.id === formData.propertyId);
 
   useEffect(() => {
     if (unitId) {
@@ -30,86 +43,82 @@ export function UnitModal({ isOpen, onClose, propertyId, unitId }: UnitModalProp
       if (unit) {
         setFormData({
           propertyId: unit.propertyId,
-          propertyName: unit.propertyName,
-          unitNumber: unit.unitNumber,
+          unitNo: unit.unitNo,
           type: unit.type,
-          price: unit.price,
+          floor: unit.floor || '',
+          rentAmount: unit.rentAmount,
           status: unit.status,
-          area: unit.area,
-          bedrooms: unit.bedrooms,
-          bathrooms: unit.bathrooms,
-          images: unit.images,
+          areaSqm: unit.areaSqm || 0,
+          bedrooms: unit.bedrooms || 0,
+          bathrooms: unit.bathrooms || 0,
         });
       }
     } else if (propertyId) {
-      const property = properties.find(p => p.id === propertyId);
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         propertyId: propertyId,
-        propertyName: property?.name || '',
-      });
+      }));
     }
-  }, [unitId, propertyId, units, properties]);
-
-  const handlePropertyChange = (selectedPropertyId: string) => {
-    const property = properties.find(p => p.id === selectedPropertyId);
-    setFormData({
-      ...formData,
-      propertyId: selectedPropertyId,
-      propertyName: property?.name || '',
-    });
-  };
+  }, [unitId, propertyId, units, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (unitId) {
-      updateUnit(unitId, formData);
-    } else {
-      addUnit(formData);
+
+    if (!formData.propertyId || !formData.unitNo) {
+      toast.error('الرجاء إدخال جميع الحقول المطلوبة');
+      return;
     }
-    
+
+    const submitData = {
+      propertyId: formData.propertyId,
+      propertyName: selectedProperty?.name || '',
+      unitNo: formData.unitNo,
+      type: formData.type,
+      floor: formData.floor || undefined,
+      rentAmount: formData.rentAmount,
+      status: formData.status,
+      areaSqm: formData.areaSqm,
+      bedrooms: formData.bedrooms,
+      bathrooms: formData.bathrooms,
+      images: [] as string[],
+    };
+
+    if (unitId) {
+      updateUnit(unitId, submitData);
+      toast.success('تم تحديث الوحدة بنجاح');
+    } else {
+      addUnit(submitData);
+      toast.success('تم إضافة الوحدة بنجاح');
+    }
+
     onClose();
   };
 
-  const handleImageUpload = () => {
-    const mockImages = [
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
-    ];
-    setFormData({ ...formData, images: [...formData.images, mockImages[Math.floor(Math.random() * mockImages.length)]] });
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold" style={{ color: '#0A2A43' }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
             {unitId ? 'تعديل الوحدة' : 'إضافة وحدة جديدة'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Property Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              العقار
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              العقار <span className="text-red-500">*</span>
             </label>
             <select
-              required
               value={formData.propertyId}
-              onChange={(e) => handlePropertyChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
+              disabled={!!propertyId}
             >
               <option value="">اختر العقار</option>
               {properties.map(property => (
                 <option key={property.id} value={property.id}>
-                  {property.name}
+                  {property.name} - {property.city}
                 </option>
               ))}
             </select>
@@ -118,61 +127,90 @@ export function UnitModal({ isOpen, onClose, propertyId, unitId }: UnitModalProp
           {/* Unit Number and Type */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الوحدة
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                رقم الوحدة <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                required
-                value={formData.unitNumber}
-                onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={formData.unitNo}
+                onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
                 placeholder="A-101"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                النوع
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                النوع <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as UnitType })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
+              >
+                {UNIT_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Floor and Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الطابق
               </label>
               <input
                 type="text"
-                required
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="شقة 3 غرف"
+                value={formData.floor}
+                onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                placeholder="الأول"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الحالة
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as UnitStatus })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white"
+              >
+                <option value="vacant">شاغرة</option>
+                <option value="rented">مؤجرة</option>
+                <option value="maintenance">صيانة</option>
+              </select>
             </div>
           </div>
 
           {/* Price and Area */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                السعر (ر.س)
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الإيجار (ر.س) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                required
                 min="0"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={formData.rentAmount}
+                onChange={(e) => setFormData({ ...formData, rentAmount: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 المساحة (م²)
               </label>
               <input
                 type="number"
-                required
                 min="0"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={formData.areaSqm}
+                onChange={(e) => setFormData({ ...formData, areaSqm: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
           </div>
@@ -180,98 +218,43 @@ export function UnitModal({ isOpen, onClose, propertyId, unitId }: UnitModalProp
           {/* Bedrooms and Bathrooms */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 غرف النوم
               </label>
               <input
                 type="number"
-                required
                 min="0"
                 value={formData.bedrooms}
                 onChange={(e) => setFormData({ ...formData, bedrooms: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 دورات المياه
               </label>
               <input
                 type="number"
-                required
                 min="0"
                 value={formData.bathrooms}
                 onChange={(e) => setFormData({ ...formData, bathrooms: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
           </div>
 
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              الحالة
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as 'available' | 'rented' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="available">متوفر</option>
-              <option value="rented">مؤجر</option>
-            </select>
-          </div>
-
-          {/* Images */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              صور الوحدة
-            </label>
-            
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              {formData.images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img src={image} alt={`صورة ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, images: formData.images.filter((_, i) => i !== index) })}
-                    className="absolute top-1 left-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleImageUpload}
-              className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
-            >
-              <Upload className="w-5 h-5" />
-              <span>رفع صورة</span>
-            </button>
-          </div>
-
           {/* Submit Buttons */}
           <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-            >
-              {unitId ? 'تحديث الوحدة' : 'إضافة الوحدة'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
+            <Button type="submit" variant="gradient" className="flex-1">
+              {unitId ? 'حفظ التعديلات' : 'إضافة الوحدة'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
               إلغاء
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
