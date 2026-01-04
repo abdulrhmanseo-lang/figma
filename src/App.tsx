@@ -24,6 +24,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { Employees } from './pages/Employees';
 import { Tasks } from './pages/Tasks';
 import { Sales } from './pages/Sales';
+import { Settings } from './components/Settings';
 import { EmployeeLoginPage } from './pages/EmployeeLoginPage';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
 import { EmployeeLayout } from './components/layout/EmployeeLayout';
@@ -110,7 +111,7 @@ function App() {
             <Route path="/app/settings" element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="p-6">قريباً</div>
+                  <Settings />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

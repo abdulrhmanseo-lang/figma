@@ -281,6 +281,36 @@ const initialTasks: Task[] = [];
 const initialNotifications: Notification[] = [];
 
 // ========================
+// LOCAL STORAGE KEYS & FUNCTIONS
+// ========================
+
+const STORAGE_KEYS = {
+  employees: 'arkan_employees_data',
+  tasks: 'arkan_tasks_data',
+  notifications: 'arkan_notifications_data',
+};
+
+function loadFromStorage<T>(key: string, defaultValue: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+  }
+  return defaultValue;
+}
+
+function saveToStorage<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+}
+
+// ========================
 // DATA PROVIDER
 // ========================
 
@@ -291,10 +321,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [employees, setEmployees] = useState<Employee[]>(() =>
+    loadFromStorage(STORAGE_KEYS.employees, initialEmployees)
+  );
+  const [tasks, setTasks] = useState<Task[]>(() =>
+    loadFromStorage(STORAGE_KEYS.tasks, initialTasks)
+  );
+  const [notifications, setNotifications] = useState<Notification[]>(() =>
+    loadFromStorage(STORAGE_KEYS.notifications, initialNotifications)
+  );
   const [loading, setLoading] = useState(true);
+
+  // Save employees to localStorage when changed
+  useEffect(() => {
+    if (employees.length > 0) {
+      saveToStorage(STORAGE_KEYS.employees, employees);
+    }
+  }, [employees]);
+
+  // Save tasks to localStorage when changed
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.tasks, tasks);
+  }, [tasks]);
+
+  // Save notifications to localStorage when changed
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.notifications, notifications);
+  }, [notifications]);
 
   // ========================
   // FETCH DATA FROM SUPABASE
