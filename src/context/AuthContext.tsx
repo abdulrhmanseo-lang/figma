@@ -125,6 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // Check if user exists in Firestore, if not create doc
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (!userDoc.exists()) {
+                // Create user doc
                 await setDoc(doc(db, 'users', user.uid), {
                     name: user.displayName || 'مستخدم Google',
                     email: user.email,
@@ -132,6 +133,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     authProvider: 'google',
                     createdAt: new Date().toISOString()
                 }, { merge: true });
+
+                // Create trial subscription for new Google users (7 days)
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setDate(startDate.getDate() + 7); // 7 days trial
+
+                const trialSubscription: Subscription = {
+                    planName: 'تجريبي مجاني',
+                    price: '0',
+                    startDate: startDate.toISOString(),
+                    endDate: endDate.toISOString(),
+                    status: 'active',
+                    code: `ARK-TRIAL-${Math.floor(Math.random() * 100000)}`
+                };
+
+                await setDoc(doc(db, 'subscriptions', user.uid), trialSubscription);
+                setSubscription(trialSubscription);
             }
         } catch (error) {
             console.error("Google Sign-in error:", error);
