@@ -22,7 +22,7 @@ export const PricingPage = () => {
     const plans = [
         {
             name: "الأساسية",
-            price: "899",
+            price: "629",
             desc: "مثالية للملاك الأفراد",
             icon: Star,
             features: [
@@ -36,7 +36,7 @@ export const PricingPage = () => {
         },
         {
             name: "المتقدمة",
-            price: "1,899",
+            price: "1,329",
             desc: "للشركات العقارية المتوسطة",
             popular: true,
             icon: Zap,
@@ -52,7 +52,7 @@ export const PricingPage = () => {
         },
         {
             name: "الشركات",
-            price: "3,499",
+            price: "2,449",
             desc: "للمؤسسات الكبيرة والمجمعات",
             icon: Building2,
             features: [
@@ -138,11 +138,11 @@ export const PricingPage = () => {
                             </div>
                             <div className="flex flex-col items-end gap-3 shrink-0">
                                 <div className="text-white text-right">
-                                    <span className="text-3xl font-bold">599</span>
+                                    <span className="text-3xl font-bold">419</span>
                                     <span className="text-blue-100 mr-2">ريال / شهرياً</span>
                                 </div>
                                 <Button
-                                    onClick={() => handleSubscribe({ name: "باقة الذكاء الاصطناعي", price: "599", features: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"] })}
+                                    onClick={() => handleSubscribe({ name: "باقة الذكاء الاصطناعي", price: "419", features: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"] })}
                                     className="bg-white text-brand-dark hover:bg-gray-100 w-full md:w-auto"
                                 >
                                     إضافة للباقة
