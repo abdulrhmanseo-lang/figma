@@ -39,7 +39,7 @@ export const RegisterPage = () => {
         setLoading(true);
         try {
             await register(formData.fullName, formData.email, formData.password);
-            navigate('/pricing');
+            navigate('/verify-email');
         } catch (err: any) {
             console.error("Registration Error", err);
             // Handle generic firebase errors

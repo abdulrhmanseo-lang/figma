@@ -5,7 +5,8 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    sendEmailVerification
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -32,6 +33,8 @@ interface AuthContextType {
     setEmployeeSession: (employee: Employee | null) => void;
     hasEmployeePermission: (module: string, action: string) => boolean;
     employeeLogout: () => void;
+    resendVerificationEmail: () => Promise<void>;
+    isEmailVerified: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -118,10 +121,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             await updateProfile(userCredential.user, { displayName: name });
             console.log("AuthContext: Profile updated");
 
+            // Send email verification
+            await sendEmailVerification(userCredential.user, {
+                url: window.location.origin + '/login',
+                handleCodeInApp: false
+            });
+            console.log("AuthContext: Verification email sent");
+
             // Create initial user doc
             await setDoc(doc(db, 'users', userCredential.user.uid), {
                 name,
                 email,
+                emailVerified: false,
                 createdAt: new Date().toISOString()
             }, { merge: true });
             console.log("AuthContext: Firestore doc created");
@@ -154,6 +165,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const permission = currentEmployee.permissions.find(p => p.module === module);
         return permission ? permission.actions.includes(action as PermissionAction) : false;
     };
+
+    // Resend email verification
+    const resendVerificationEmail = async () => {
+        if (user && !user.emailVerified) {
+            await sendEmailVerification(user, {
+                url: window.location.origin + '/login',
+                handleCodeInApp: false
+            });
+        }
+    };
+
+    // Check if email is verified
+    const isEmailVerified = user?.emailVerified || user?.email === 'admin@arkan.sa' || false;
 
     const subscribe = async (plan: any) => {
         if (!user) return;
@@ -188,7 +212,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             subscribe,
             setEmployeeSession,
             hasEmployeePermission,
-            employeeLogout
+            employeeLogout,
+            resendVerificationEmail,
+            isEmailVerified
         }}>
             {!loading && children}
         </AuthContext.Provider>
