@@ -6,7 +6,9 @@ import {
     signOut,
     onAuthStateChanged,
     updateProfile,
-    sendEmailVerification
+    sendEmailVerification,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -27,6 +29,7 @@ interface AuthContextType {
     subscription: Subscription | null;
     currentEmployee: Employee | null;
     login: (email: string, password: string) => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
     register: (name: string, email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     subscribe: (plan: any) => Promise<void>;
@@ -110,6 +113,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         // Otherwise use Firebase auth
         await signInWithEmailAndPassword(auth, email, password);
+    };
+
+    // Google Sign-in
+    const loginWithGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Check if user exists in Firestore, if not create doc
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (!userDoc.exists()) {
+                await setDoc(doc(db, 'users', user.uid), {
+                    name: user.displayName || 'مستخدم Google',
+                    email: user.email,
+                    emailVerified: true,
+                    authProvider: 'google',
+                    createdAt: new Date().toISOString()
+                }, { merge: true });
+            }
+        } catch (error) {
+            console.error("Google Sign-in error:", error);
+            throw error;
+        }
     };
 
     const register = async (name: string, email: string, password: string) => {
@@ -207,6 +234,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             subscription,
             currentEmployee,
             login,
+            loginWithGoogle,
             register,
             logout,
             subscribe,
