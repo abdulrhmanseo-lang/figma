@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { X, Check, Loader2 } from 'lucide-react';
 import { Button } from './button';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +44,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
 
         // Call subscribe from context
         if (plan) {
-            subscribe(plan.name, plan.price, 30); // Default 30 days
+            subscribe({ name: plan.name, price: plan.price });
         }
 
         setLoading(false);
@@ -156,8 +156,15 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
                                     <p className="text-gray-500 mb-8 max-w-xs mx-auto">
                                         شكراً لاشتراكك في باقة {plan.name}. تم إرسال تفاصيل التفعيل إلى بريدك الإلكتروني.
                                     </p>
-                                    <Button onClick={onClose} variant="outline" className="w-full">
-                                        إغلاق
+                                    <Button
+                                        onClick={() => {
+                                            onClose();
+                                            navigate('/app');
+                                        }}
+                                        variant="gradient"
+                                        className="w-full shadow-lg shadow-brand-blue/20"
+                                    >
+                                        الذهاب إلى لوحة التحكم
                                     </Button>
                                 </div>
                             )}
