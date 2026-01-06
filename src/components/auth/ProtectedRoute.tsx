@@ -1,13 +1,14 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LoadingScreen } from '../ui/LoadingScreen';
 
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, subscription, isLoading } = useAuth();
+    const { user, subscription, loading } = useAuth();
     const location = useLocation();
 
-    if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (loading) {
+        return <LoadingScreen />;
     }
 
     if (!user) {
@@ -16,8 +17,10 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     // Check if subscription exists and is active
-    // EXCEPT if we are going to /profile or /renew or /pricing OR /dashboard (handled internally)
-    const isPublicAuthRoute = ['/profile', '/renew', '/pricing', '/dashboard'].includes(location.pathname);
+    // Allow access to /app and other routes after subscription
+    const isPublicAuthRoute = ['/profile', '/renew', '/pricing', '/dashboard', '/app'].some(
+        path => location.pathname === path || location.pathname.startsWith('/app')
+    );
 
     if (!isPublicAuthRoute && (!subscription || subscription.status === 'expired')) {
         return <Navigate to="/pricing" replace state={{ message: "انتهت صلاحية اشتراكك، يرجى التجديد للمتابعة." }} />;
@@ -25,3 +28,4 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
 
     return <>{children}</>;
 };
+
