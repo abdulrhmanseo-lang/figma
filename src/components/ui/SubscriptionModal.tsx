@@ -39,16 +39,21 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
         e.preventDefault();
         setLoading(true);
 
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            // Mock payment processing delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Call subscribe from context
-        if (plan) {
-            subscribe({ name: plan.name, price: plan.price });
+            // Call subscribe from context and wait for it to complete
+            if (plan) {
+                await subscribe({ name: plan.name, price: plan.price });
+            }
+
+            setStep('success');
+        } catch (error) {
+            console.error('Subscription error:', error);
+        } finally {
+            setLoading(false);
         }
-
-        setLoading(false);
-        setStep('success');
     };
 
     if (!plan) return null;

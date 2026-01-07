@@ -40,7 +40,8 @@ export const RegisterPage = () => {
         setLoading(true);
         try {
             await register(formData.fullName, formData.email, formData.password);
-            navigate('/verify-email');
+            // Redirect directly to app with trial subscription
+            navigate('/app');
         } catch (err: any) {
             console.error("Registration Error", err);
             // Handle generic firebase errors

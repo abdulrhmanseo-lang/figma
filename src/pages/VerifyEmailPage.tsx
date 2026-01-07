@@ -7,7 +7,7 @@ import { Card } from '../components/ui/card';
 import { Mail, RefreshCw, CheckCircle, ArrowRight } from 'lucide-react';
 
 export const VerifyEmailPage = () => {
-    const { user, resendVerificationEmail, isEmailVerified } = useAuth();
+    const { user, resendVerificationEmail, isEmailVerified, subscription } = useAuth();
     const navigate = useNavigate();
     const [isResending, setIsResending] = useState(false);
     const [resendSuccess, setResendSuccess] = useState(false);
@@ -31,7 +31,16 @@ export const VerifyEmailPage = () => {
         window.location.reload();
     };
 
-    // If email is already verified, redirect to dashboard
+    // Determine where to redirect after verification
+    const handleProceed = () => {
+        if (subscription && subscription.status === 'active') {
+            navigate('/app');
+        } else {
+            navigate('/pricing');
+        }
+    };
+
+    // If email is already verified, show success and redirect options
     if (isEmailVerified) {
         return (
             <Layout>
@@ -41,13 +50,19 @@ export const VerifyEmailPage = () => {
                             <CheckCircle className="w-10 h-10 text-green-600" />
                         </div>
                         <h1 className="text-2xl font-bold text-brand-dark mb-4">تم التحقق من بريدك الإلكتروني!</h1>
-                        <p className="text-gray-600 mb-8">يمكنك الآن الوصول إلى جميع مميزات أركان.</p>
+                        <p className="text-gray-600 mb-8">
+                            {subscription && subscription.status === 'active'
+                                ? 'يمكنك الآن الوصول إلى جميع مميزات أركان.'
+                                : 'يرجى اختيار باقة للاشتراك والبدء باستخدام أركان.'}
+                        </p>
                         <Button
                             variant="gradient"
                             className="w-full"
-                            onClick={() => navigate('/app')}
+                            onClick={handleProceed}
                         >
-                            الذهاب للوحة التحكم
+                            {subscription && subscription.status === 'active'
+                                ? 'الذهاب للوحة التحكم'
+                                : 'اختيار باقة الاشتراك'}
                             <ArrowRight className="w-4 h-4 mr-2" />
                         </Button>
                     </Card>

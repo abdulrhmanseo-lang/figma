@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import type {
   Property,
@@ -18,6 +18,16 @@ import type {
   TaskHistoryItem,
   Notification,
 } from '../types/database';
+import type {
+  ReportPeriod,
+  ReportStatus,
+  OwnerReportSummary,
+  MaintenanceEnhancement,
+  MaintenanceCostHistory,
+  RepeatedIssue,
+} from '../types/reportTypes';
+import { ReportsIntelligenceEngine } from '../services/ReportsIntelligenceEngine';
+import { MaintenanceIntelligenceEngine } from '../services/MaintenanceIntelligenceEngine';
 
 // ========================
 // CONTEXT TYPE
@@ -85,6 +95,16 @@ interface DataContextType {
   // Notifications
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+
+  // Intelligence - Owner Reports
+  getOwnerReport: (period?: ReportPeriod, propertyId?: string) => OwnerReportSummary;
+  getReportStatus: (propertyId?: string) => ReportStatus;
+
+  // Intelligence - Maintenance
+  getMaintenanceEnhancement: (requestId: string) => MaintenanceEnhancement | null;
+  getMaintenanceCostHistory: (propertyId?: string, unitId?: string) => MaintenanceCostHistory;
+  getRepeatedIssues: () => RepeatedIssue[];
+  checkMaintenanceEscalations: () => { requestId: string; level: number; info: any }[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -806,6 +826,73 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  // ========================
+  // INTELLIGENCE - OWNER REPORTS
+  // ========================
+
+  const getOwnerReport = useCallback((period: ReportPeriod = 'monthly', propertyId?: string): OwnerReportSummary => {
+    return ReportsIntelligenceEngine.generateOwnerReport(
+      properties,
+      units,
+      contracts,
+      payments,
+      maintenanceRequests,
+      period,
+      propertyId
+    );
+  }, [properties, units, contracts, payments, maintenanceRequests]);
+
+  const getReportStatus = useCallback((propertyId?: string): ReportStatus => {
+    const report = getOwnerReport('monthly', propertyId);
+    return report.status;
+  }, [getOwnerReport]);
+
+  // ========================
+  // INTELLIGENCE - MAINTENANCE
+  // ========================
+
+  const maintenanceEnhancements = useMemo(() => {
+    const enhancements: Record<string, MaintenanceEnhancement> = {};
+    maintenanceRequests.forEach(req => {
+      enhancements[req.id] = MaintenanceIntelligenceEngine.enhanceMaintenanceRequest(req, maintenanceRequests);
+    });
+    return enhancements;
+  }, [maintenanceRequests]);
+
+  const getMaintenanceEnhancement = useCallback((requestId: string): MaintenanceEnhancement | null => {
+    return maintenanceEnhancements[requestId] || null;
+  }, [maintenanceEnhancements]);
+
+  const getMaintenanceCostHistory = useCallback((propertyId?: string, unitId?: string): MaintenanceCostHistory => {
+    return MaintenanceIntelligenceEngine.calculateCostHistory(maintenanceRequests, propertyId, unitId);
+  }, [maintenanceRequests]);
+
+  const getRepeatedIssues = useCallback((): RepeatedIssue[] => {
+    return MaintenanceIntelligenceEngine.detectRepeatedIssues(maintenanceRequests);
+  }, [maintenanceRequests]);
+
+  const checkMaintenanceEscalations = useCallback(() => {
+    const escalations: { requestId: string; level: number; info: any }[] = [];
+
+    maintenanceRequests.forEach(req => {
+      if (req.status === 'done' || req.status === 'canceled') return;
+
+      const enhancement = maintenanceEnhancements[req.id];
+      if (!enhancement) return;
+
+      const level = MaintenanceIntelligenceEngine.calculateEscalationLevel(req, enhancement);
+      if (level > 0) {
+        escalations.push({
+          requestId: req.id,
+          level,
+          info: MaintenanceIntelligenceEngine.getEscalationInfo(level),
+        });
+      }
+    });
+
+    return escalations;
+  }, [maintenanceRequests, maintenanceEnhancements]);
+
   return (
     <DataContext.Provider
       value={{
@@ -847,6 +934,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateTaskStatus,
         markNotificationRead,
         markAllNotificationsRead,
+        // Intelligence - Owner Reports
+        getOwnerReport,
+        getReportStatus,
+        // Intelligence - Maintenance
+        getMaintenanceEnhancement,
+        getMaintenanceCostHistory,
+        getRepeatedIssues,
+        checkMaintenanceEscalations,
       }}
     >
       {children}

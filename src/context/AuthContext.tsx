@@ -12,7 +12,16 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
-import type { Employee, PermissionModule, PermissionAction } from '../types/database';
+import type { Employee, PermissionAction } from '../types/database';
+import { CompanyContextService } from '../services/CompanyContext';
+import { FirestoreCompanyService } from '../services/FirestoreCompanyService';
+import type { UserRole, TenantUser } from '../types/multiTenantTypes';
+
+// Super Admin emails - these users get SUPER_ADMIN role
+const SUPER_ADMIN_EMAILS = [
+    'abdulrhmanseo@gmail.com',
+    'admin@arkan.sa'
+];
 
 interface Subscription {
     planName: string;
@@ -28,6 +37,8 @@ interface AuthContextType {
     loading: boolean;
     subscription: Subscription | null;
     currentEmployee: Employee | null;
+    isSuperAdmin: boolean;
+    tenantUser: TenantUser | null;
     login: (email: string, password: string) => Promise<void>;
     loginWithGoogle: () => Promise<void>;
     register: (name: string, email: string, password: string) => Promise<void>;
@@ -38,6 +49,8 @@ interface AuthContextType {
     employeeLogout: () => void;
     resendVerificationEmail: () => Promise<void>;
     isEmailVerified: boolean;
+    switchToCompany: (companyId: string) => void;
+    exitCompanyView: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -52,6 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [subscription, setSubscription] = useState<Subscription | null>(null);
     const [loading, setLoading] = useState(true);
+    const [tenantUser, setTenantUser] = useState<TenantUser | null>(null);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(() => {
         // Load from localStorage on init
         const stored = localStorage.getItem('employeeSession');
@@ -62,6 +77,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
+                // Check if Super Admin
+                const userEmail = currentUser.email || '';
+                const isSuper = SUPER_ADMIN_EMAILS.includes(userEmail.toLowerCase());
+                setIsSuperAdmin(isSuper);
+
+                // Register tenant user
+                let existingTenantUser = CompanyContextService.getUserByFirebaseUid(currentUser.uid);
+                if (!existingTenantUser) {
+                    const role: UserRole = isSuper ? 'SUPER_ADMIN' : 'company_admin';
+                    existingTenantUser = CompanyContextService.registerUser(
+                        currentUser.uid,
+                        userEmail,
+                        currentUser.displayName || 'User',
+                        isSuper ? null : 'default-company',
+                        role
+                    );
+                }
+                setTenantUser(existingTenantUser);
+
+                // Create session
+                CompanyContextService.createSession(existingTenantUser);
+
                 // Fetch subscription data
                 try {
                     const subDoc = await getDoc(doc(db, 'subscriptions', currentUser.uid));
@@ -82,6 +119,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 }
             } else {
                 setSubscription(null);
+                setTenantUser(null);
+                setIsSuperAdmin(false);
             }
             setLoading(false);
         });
@@ -100,6 +139,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 emailVerified: true,
             } as unknown as User;
             setUser(mockUser);
+
+            // Set Super Admin for demo mode (admin@arkan.sa is in SUPER_ADMIN_EMAILS)
+            setIsSuperAdmin(true);
+
+            // Create tenant user for demo mode
+            let demoTenantUser = CompanyContextService.getUserByFirebaseUid('demo-admin-uid');
+            if (!demoTenantUser) {
+                demoTenantUser = CompanyContextService.registerUser(
+                    'demo-admin-uid',
+                    'admin@arkan.sa',
+                    'أحمد محمد الأدمن',
+                    null, // Super Admin has no company
+                    'SUPER_ADMIN'
+                );
+            }
+            setTenantUser(demoTenantUser);
+            CompanyContextService.createSession(demoTenantUser);
+
             // Set demo subscription
             setSubscription({
                 planName: 'الباقة الاحترافية',
@@ -133,6 +190,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     authProvider: 'google',
                     createdAt: new Date().toISOString()
                 }, { merge: true });
+
+                // Create company for new Google user
+                await FirestoreCompanyService.createCompany(
+                    user.uid,
+                    user.email || '',
+                    user.displayName || 'مستخدم Google'
+                );
+                console.log('AuthContext: Company created for Google user');
 
                 // Create trial subscription for new Google users (7 days)
                 const startDate = new Date();
@@ -181,6 +246,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 createdAt: new Date().toISOString()
             }, { merge: true });
             console.log("AuthContext: Firestore doc created");
+
+            // Create company for new user
+            await FirestoreCompanyService.createCompany(
+                userCredential.user.uid,
+                email,
+                name
+            );
+            console.log("AuthContext: Company created for new user");
+
+            // Create 40-minute trial subscription
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setMinutes(startDate.getMinutes() + 40); // 40 minutes trial
+
+            const trialSubscription: Subscription = {
+                planName: 'تجريبي مجاني',
+                price: '0',
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                status: 'active',
+                code: `ARK-TRIAL-${Math.floor(Math.random() * 100000)}`
+            };
+
+            await setDoc(doc(db, 'subscriptions', userCredential.user.uid), trialSubscription);
+            setSubscription(trialSubscription);
+            console.log("AuthContext: Trial subscription created");
         } catch (error) {
             console.error("AuthContext: Registration FAILED", error);
             throw error;
@@ -245,12 +336,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSubscription(subData);
     };
 
+    // Super Admin context switching
+    const switchToCompany = (companyId: string) => {
+        if (tenantUser && isSuperAdmin) {
+            CompanyContextService.switchContext(tenantUser.id, companyId);
+        }
+    };
+
+    const exitCompanyView = () => {
+        if (tenantUser && isSuperAdmin) {
+            CompanyContextService.exitContextSwitch(tenantUser.id);
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
             loading,
             subscription,
             currentEmployee,
+            isSuperAdmin,
+            tenantUser,
             login,
             loginWithGoogle,
             register,
@@ -260,7 +366,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             hasEmployeePermission,
             employeeLogout,
             resendVerificationEmail,
-            isEmailVerified
+            isEmailVerified,
+            switchToCompany,
+            exitCompanyView
         }}>
             {!loading && children}
         </AuthContext.Provider>

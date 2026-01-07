@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { motion } from 'motion/react';
 import {
   Building2, Home, Users, FileText, CreditCard, Wrench,
-  BarChart3, ShoppingCart, ClipboardList, ShieldCheck, CheckCircle2
+  BarChart3, ShoppingCart, ClipboardList, ShieldCheck, CheckCircle2,
+  AlertCircle, DollarSign, PieChart
 } from 'lucide-react';
+import { SuperAdminPanel } from '../components/SuperAdminPanel';
 
 const navItems = [
   { name: 'نظرة عامة', path: '/app', icon: BarChart3 },
@@ -64,7 +67,69 @@ const itemAnim = {
 
 export function Dashboard() {
   const { user } = useAuth();
-  const isFullAdmin = true; // Assuming admin for now
+  const { getKPI, properties } = useData();
+  const kpi = getKPI();
+
+  // Format currency
+  const formatSAR = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount) + ' ر.س';
+  };
+
+  // KPI Cards data
+  const kpiCards = [
+    {
+      label: 'إجمالي العقارات',
+      value: properties.length,
+      icon: Building2,
+      gradient: 'from-blue-500 to-indigo-600',
+      bgGradient: 'from-blue-50 to-indigo-50',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+    },
+    {
+      label: 'إجمالي الوحدات',
+      value: kpi.totalUnits,
+      icon: Home,
+      gradient: 'from-purple-500 to-pink-600',
+      bgGradient: 'from-purple-50 to-pink-50',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+    },
+    {
+      label: 'نسبة الإشغال',
+      value: `${Math.round(kpi.occupancyRate)}%`,
+      icon: PieChart,
+      gradient: 'from-emerald-500 to-teal-600',
+      bgGradient: 'from-emerald-50 to-teal-50',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      progress: kpi.occupancyRate,
+    },
+    {
+      label: 'الدخل الشهري المتوقع',
+      value: formatSAR(kpi.expectedMonthlyIncome),
+      icon: DollarSign,
+      gradient: 'from-amber-500 to-orange-600',
+      bgGradient: 'from-amber-50 to-orange-50',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+    },
+    {
+      label: 'المتأخرات',
+      value: formatSAR(kpi.overdueAmount),
+      subValue: `${kpi.overdueCount} دفعة`,
+      icon: AlertCircle,
+      gradient: 'from-red-500 to-rose-600',
+      bgGradient: 'from-red-50 to-rose-50',
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-600',
+      isWarning: kpi.overdueAmount > 0,
+    },
+  ];
 
   return (
     <motion.div
@@ -80,6 +145,71 @@ export function Dashboard() {
             مرحباً، <span className="text-brand-blue">{user?.displayName?.split(' ')[0] || 'أدمن'}</span>!
           </h1>
           <p className="text-sm lg:text-base text-gray-500">لوحة التحكم الخاصة بك</p>
+        </div>
+      </motion.div>
+
+      {/* Super Admin Panel - Only visible to authorized Super Admins */}
+      <SuperAdminPanel />
+
+      {/* Glassmorphism KPI Stats Bar */}
+      <motion.div variants={itemAnim}>
+        <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl p-[1px] bg-gradient-to-r from-brand-blue/30 via-purple-500/30 to-brand-blue/30">
+          {/* Glass Background */}
+          <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl lg:rounded-3xl p-4 lg:p-6 overflow-hidden">
+            {/* Decorative Blobs */}
+            <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-brand-blue/20 to-purple-500/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl" />
+
+            {/* KPI Cards Grid */}
+            <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
+              {kpiCards.map((card, index) => {
+                const Icon = card.icon;
+                return (
+                  <motion.div
+                    key={card.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    className={`relative overflow-hidden rounded-xl lg:rounded-2xl p-3 lg:p-4 bg-gradient-to-br ${card.bgGradient} border border-white/50 shadow-sm hover:shadow-lg transition-all duration-300 group`}
+                  >
+                    {/* Gradient Accent Line */}
+                    <div className={`absolute top-0 right-0 left-0 h-1 bg-gradient-to-r ${card.gradient} opacity-80`} />
+
+                    {/* Content */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] lg:text-xs text-gray-500 font-medium mb-1 truncate">{card.label}</p>
+                        <p className={`text-base lg:text-xl font-bold text-gray-800 truncate ${card.isWarning ? 'text-red-600' : ''}`}>
+                          {card.value}
+                        </p>
+                        {card.subValue && (
+                          <p className="text-[10px] lg:text-xs text-gray-400 mt-0.5">{card.subValue}</p>
+                        )}
+
+                        {/* Progress Bar for Occupancy */}
+                        {card.progress !== undefined && (
+                          <div className="mt-2 h-1.5 bg-gray-200/50 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${card.progress}%` }}
+                              transition={{ duration: 1, delay: 0.5 }}
+                              className={`h-full bg-gradient-to-r ${card.gradient} rounded-full`}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Icon */}
+                      <div className={`w-9 h-9 lg:w-11 lg:h-11 rounded-xl ${card.iconBg} flex items-center justify-center ${card.iconColor} flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -99,25 +229,25 @@ export function Dashboard() {
             return (
               <motion.div
                 key={perm.module}
-                whileHover={{ y: -2 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 lg:p-4 flex items-center justify-between group overflow-hidden relative"
+                whileHover={{ y: -2, scale: 1.02 }}
+                className="bg-white hover:bg-gradient-to-br hover:from-purple-500 hover:to-indigo-600 rounded-xl shadow-sm border border-gray-100 hover:border-purple-400 p-3 lg:p-4 flex items-center justify-between group overflow-hidden relative transition-all duration-300 cursor-pointer"
               >
-                <div className="absolute left-0 top-0 w-1 h-full bg-brand-blue opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute left-0 top-0 w-1 h-full bg-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors flex-shrink-0">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gray-50 group-hover:bg-white/20 flex items-center justify-center text-gray-400 group-hover:text-white transition-all duration-300 flex-shrink-0">
                     <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-gray-800 text-xs lg:text-sm truncate">{config?.label}</h3>
-                    <p className="text-[10px] lg:text-xs text-gray-400 mt-0.5 truncate">
+                    <h3 className="font-bold text-gray-800 group-hover:text-white text-xs lg:text-sm truncate transition-colors duration-300">{config?.label}</h3>
+                    <p className="text-[10px] lg:text-xs text-gray-400 group-hover:text-white/80 mt-0.5 truncate transition-colors duration-300">
                       {isFullControl ? 'تحكم كامل' : 'صلاحيات محدودة'}
                     </p>
                   </div>
                 </div>
 
                 {isFullControl && (
-                  <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                  <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-50 group-hover:bg-white/20 flex items-center justify-center text-green-600 group-hover:text-white flex-shrink-0 transition-all duration-300">
                     <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
                 )}

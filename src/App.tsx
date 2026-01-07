@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingScreen } from './components/ui/LoadingScreen';
+import { TrialTimer } from './components/TrialTimer';
 import { Toaster } from 'sonner';
 
 // Lazy load pages for better performance
@@ -40,7 +41,25 @@ const EmployeeDashboard = lazy(() => import('./pages/EmployeeDashboard').then(m 
 const EmployeeLayout = lazy(() => import('./components/layout/EmployeeLayout').then(m => ({ default: m.EmployeeLayout })));
 const DashboardLayout = lazy(() => import('./components/layout/DashboardLayout').then(m => ({ default: m.DashboardLayout })));
 
+// Preload critical routes after initial load for faster navigation
+const preloadCriticalRoutes = () => {
+  // Preload authentication pages
+  import('./pages/LoginPage');
+  import('./pages/RegisterPage');
+  import('./pages/PricingPage');
+  // Preload dashboard after a short delay
+  setTimeout(() => {
+    import('./pages/Dashboard');
+    import('./components/layout/DashboardLayout');
+  }, 1000);
+};
+
 function App() {
+  // Preload critical routes after initial render
+  useEffect(() => {
+    preloadCriticalRoutes();
+  }, []);
+
   return (
     <div dir="rtl" className="font-cairo">
       <AuthProvider>
@@ -169,6 +188,7 @@ function App() {
             </Routes>
           </Suspense>
           <Toaster position="top-center" richColors />
+          <TrialTimer />
         </DataProvider>
       </AuthProvider>
     </div>
