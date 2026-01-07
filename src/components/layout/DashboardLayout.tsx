@@ -4,9 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import {
     BarChart3, Building2, Home, Users, FileText, CreditCard, Wrench,
-    Settings, ClipboardList, LogOut, ChevronRight, Bell, ShoppingCart,
-    Menu, X
+    Settings, ClipboardList, LogOut, ChevronRight, ShoppingCart, Menu, X
 } from 'lucide-react';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 const sidebarLinks = [
     { name: 'نظرة عامة', path: '/app', icon: BarChart3 },
@@ -51,10 +51,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Sidebar */}
             <aside className={`
-                fixed right-0 top-0 h-screen w-72 lg:w-64 bg-white shadow-xl z-50 flex flex-col
-                transform transition-transform duration-300 ease-in-out
+                fixed right - 0 top - 0 h - screen w - 72 lg: w - 64 bg - white shadow - xl z - 50 flex flex - col
+                transform transition - transform duration - 300 ease -in -out
                 ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-            `}>
+`}>
                 {/* Logo */}
                 <div className="p-4 lg:p-6 border-b border-gray-100 flex items-center justify-between">
                     <Link to="/app" className="flex items-center gap-2" onClick={closeSidebar}>
@@ -85,10 +85,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                     <Link
                                         to={link.path}
                                         onClick={closeSidebar}
-                                        className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl transition-all text-sm lg:text-base ${isActive
+                                        className={`flex items - center gap - 3 px - 3 lg: px - 4 py - 2.5 lg: py - 3 rounded - xl transition - all text - sm lg: text - base ${isActive
                                             ? 'bg-gradient-to-l from-brand-blue to-brand-purple text-white shadow-lg'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-brand-dark'
-                                            }`}
+                                            } `}
                                     >
                                         <link.icon className="w-5 h-5 flex-shrink-0" />
                                         <span className="font-medium">{link.name}</span>
@@ -139,10 +139,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             </h1>
                         </div>
                         <div className="flex items-center gap-2 lg:gap-4">
-                            <button className="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                                <Bell className="w-5 h-5 text-gray-500" />
-                                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                            </button>
+                            <NotificationsDropdown />
                         </div>
                     </div>
                 </header>

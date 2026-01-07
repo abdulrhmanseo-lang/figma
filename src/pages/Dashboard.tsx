@@ -225,33 +225,40 @@ export function Dashboard() {
             const config = moduleConfig[perm.module];
             const Icon = config?.icon || BarChart3;
             const isFullControl = perm.actions.length >= 4;
+            const path = `/app/${perm.module}`;
 
             return (
-              <motion.div
+              <Link
                 key={perm.module}
-                whileHover={{ y: -2, scale: 1.02 }}
-                className="bg-white hover:bg-gradient-to-br hover:from-purple-500 hover:to-indigo-600 rounded-xl shadow-sm border border-gray-100 hover:border-purple-400 p-3 lg:p-4 flex items-center justify-between group overflow-hidden relative transition-all duration-300 cursor-pointer"
+                to={path}
+                className="block touch-manipulation"
               >
-                <div className="absolute left-0 top-0 w-1 h-full bg-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <motion.div
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-white hover:bg-gradient-to-br hover:from-purple-500 hover:to-indigo-600 active:bg-gradient-to-br active:from-purple-600 active:to-indigo-700 rounded-xl shadow-sm border border-gray-100 hover:border-purple-400 p-3 lg:p-4 flex items-center justify-between group overflow-hidden relative transition-all duration-300 cursor-pointer h-full"
+                >
+                  <div className="absolute left-0 top-0 w-1 h-full bg-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gray-50 group-hover:bg-white/20 flex items-center justify-center text-gray-400 group-hover:text-white transition-all duration-300 flex-shrink-0">
-                    <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gray-50 group-hover:bg-white/20 flex items-center justify-center text-gray-400 group-hover:text-white transition-all duration-300 flex-shrink-0">
+                      <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-gray-800 group-hover:text-white text-xs lg:text-sm truncate transition-colors duration-300">{config?.label}</h3>
+                      <p className="text-[10px] lg:text-xs text-gray-400 group-hover:text-white/80 mt-0.5 truncate transition-colors duration-300">
+                        {isFullControl ? 'تحكم كامل' : 'صلاحيات محدودة'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-gray-800 group-hover:text-white text-xs lg:text-sm truncate transition-colors duration-300">{config?.label}</h3>
-                    <p className="text-[10px] lg:text-xs text-gray-400 group-hover:text-white/80 mt-0.5 truncate transition-colors duration-300">
-                      {isFullControl ? 'تحكم كامل' : 'صلاحيات محدودة'}
-                    </p>
-                  </div>
-                </div>
 
-                {isFullControl && (
-                  <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-50 group-hover:bg-white/20 flex items-center justify-center text-green-600 group-hover:text-white flex-shrink-0 transition-all duration-300">
-                    <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5" />
-                  </div>
-                )}
-              </motion.div>
+                  {isFullControl && (
+                    <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-50 group-hover:bg-white/20 flex items-center justify-center text-green-600 group-hover:text-white flex-shrink-0 transition-all duration-300">
+                      <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                    </div>
+                  )}
+                </motion.div>
+              </Link>
             );
           })}
         </div>

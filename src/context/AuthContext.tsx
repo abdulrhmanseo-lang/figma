@@ -16,6 +16,7 @@ import type { Employee, PermissionAction } from '../types/database';
 import { CompanyContextService } from '../services/CompanyContext';
 import { FirestoreCompanyService } from '../services/FirestoreCompanyService';
 import type { UserRole, TenantUser } from '../types/multiTenantTypes';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 // Super Admin emails - these users get SUPER_ADMIN role
 const SUPER_ADMIN_EMAILS = [
@@ -370,7 +371,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             switchToCompany,
             exitCompanyView
         }}>
-            {!loading && children}
+            {loading ? <LoadingScreen /> : children}
         </AuthContext.Provider>
     );
 };
