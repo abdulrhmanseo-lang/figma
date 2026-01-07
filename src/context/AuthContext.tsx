@@ -100,30 +100,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 // Create session
                 CompanyContextService.createSession(existingTenantUser);
 
-                // Fetch subscription data
-                try {
-                    const subDoc = await getDoc(doc(db, 'subscriptions', currentUser.uid));
-                    if (subDoc.exists()) {
-                        const subData = subDoc.data() as Subscription;
-                        // Check expiry
-                        if (new Date(subData.endDate) < new Date()) {
-                            setSubscription({ ...subData, status: 'expired' });
+                // Allow UI to render immediately, fetch subscription in background
+                setLoading(false);
+
+                // Fetch subscription data (Non-blocking)
+                getDoc(doc(db, 'subscriptions', currentUser.uid))
+                    .then((subDoc) => {
+                        if (subDoc.exists()) {
+                            const subData = subDoc.data() as Subscription;
+                            // Check expiry
+                            if (new Date(subData.endDate) < new Date()) {
+                                setSubscription({ ...subData, status: 'expired' });
+                            } else {
+                                setSubscription(subData);
+                            }
                         } else {
-                            setSubscription(subData);
+                            setSubscription(null);
                         }
-                    } else {
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching subscription:", error);
                         setSubscription(null);
-                    }
-                } catch (error) {
-                    console.error("Error fetching subscription:", error);
-                    setSubscription(null);
-                }
+                    });
             } else {
                 setSubscription(null);
                 setTenantUser(null);
                 setIsSuperAdmin(false);
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => unsubscribe();
