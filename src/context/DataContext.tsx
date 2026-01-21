@@ -459,20 +459,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const addProperty = async (property: Omit<Property, 'id' | 'companyId' | 'createdAt'>) => {
-    const { error } = await supabase.from('properties').insert({
+    console.log('Adding property:', property);
+    const { data, error } = await supabase.from('properties').insert({
       company_id: DEMO_COMPANY_ID,
       name: property.name,
       city: property.city,
       address: property.address,
       type: property.type,
-      description: property.description,
-      notes: property.notes,
-      images: property.images,
-    });
-    if (!error) await refreshData();
+      description: property.description || null,
+      notes: property.notes || null,
+      images: property.images || [],
+    }).select();
+
+    if (error) {
+      console.error('Error adding property:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('Property added successfully:', data);
+    await refreshData();
   };
 
   const updateProperty = async (id: string, property: Partial<Property>) => {
+    console.log('Updating property:', id, property);
     const updateData: any = {};
     if (property.name) updateData.name = property.name;
     if (property.city) updateData.city = property.city;
@@ -483,12 +492,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (property.images) updateData.images = property.images;
 
     const { error } = await supabase.from('properties').update(updateData).eq('id', id);
-    if (!error) await refreshData();
+
+    if (error) {
+      console.error('Error updating property:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('Property updated successfully');
+    await refreshData();
   };
 
   const deleteProperty = async (id: string) => {
+    console.log('Deleting property:', id);
     const { error } = await supabase.from('properties').delete().eq('id', id);
-    if (!error) await refreshData();
+
+    if (error) {
+      console.error('Error deleting property:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('Property deleted successfully');
+    await refreshData();
   };
 
   // ========================

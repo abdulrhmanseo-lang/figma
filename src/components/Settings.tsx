@@ -302,7 +302,7 @@ export function Settings() {
       onClick={() => !disabled && onChange(!checked)}
       className={`relative w-14 h-7 rounded-full transition-all duration-300 ${checked
         ? 'bg-gradient-to-r from-brand-blue to-purple-500'
-        : 'bg-gray-300 dark:bg-gray-600'
+        : 'bg-gray-300'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <motion.div
@@ -319,7 +319,7 @@ export function Settings() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-2xl p-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
+      className={`relative overflow-hidden rounded-2xl p-4 lg:p-5 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
     >
       {children}
     </motion.div>
@@ -339,14 +339,14 @@ export function Settings() {
     children: React.ReactNode;
     iconColor?: string;
   }) => (
-    <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 dark:border-gray-700 last:border-0">
+    <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center ${iconColor} flex-shrink-0`}>
+        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center ${iconColor} flex-shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
         <div className="min-w-0">
-          <h4 className="font-semibold text-gray-800 dark:text-white text-sm lg:text-base">{title}</h4>
-          <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 truncate">{description}</p>
+          <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{title}</h4>
+          <p className="text-xs lg:text-sm text-gray-500 truncate">{description}</p>
         </div>
       </div>
       <div className="flex-shrink-0">
