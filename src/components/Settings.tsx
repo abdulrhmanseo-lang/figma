@@ -301,8 +301,8 @@ export function Settings() {
       whileTap={{ scale: 0.95 }}
       onClick={() => !disabled && onChange(!checked)}
       className={`relative w-14 h-7 rounded-full transition-all duration-300 ${checked
-          ? 'bg-gradient-to-r from-brand-blue to-purple-500'
-          : 'bg-gray-300 dark:bg-gray-600'
+        ? 'bg-gradient-to-r from-brand-blue to-purple-500'
+        : 'bg-gray-300 dark:bg-gray-600'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <motion.div
@@ -357,21 +357,21 @@ export function Settings() {
 
   // Profile Settings
   const renderProfileSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Avatar Section */}
       <SettingCard>
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-blue to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-right">
+          <div className="relative flex-shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-brand-blue to-purple-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg">
               {settings.profile.name.charAt(0)}
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-500 border-4 border-white dark:border-gray-800 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-white" />
+            <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500 border-2 sm:border-4 border-white dark:border-gray-800 flex items-center justify-center">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
             </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white">{settings.profile.name}</h3>
-            <p className="text-gray-500 dark:text-gray-400">{settings.profile.email}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white truncate">{settings.profile.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{settings.profile.email}</p>
             <span className="inline-block mt-2 px-3 py-1 bg-brand-blue/10 text-brand-blue text-xs rounded-full font-medium">
               {(t.profile.roles as any)[settings.profile.role]}
             </span>
@@ -381,7 +381,8 @@ export function Settings() {
 
       {/* Form Fields */}
       <SettingCard>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-4">
+          {/* Full Name - Full Width */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t.profile.fullName}
@@ -390,9 +391,11 @@ export function Settings() {
               type="text"
               value={settings.profile.name}
               onChange={(e) => updateSetting('profile', 'name', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
             />
           </div>
+
+          {/* Email - Full Width */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t.profile.email}
@@ -401,73 +404,99 @@ export function Settings() {
               type="email"
               value={settings.profile.email}
               onChange={(e) => updateSetting('profile', 'email', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t.profile.company}
-            </label>
-            <input
-              type="text"
-              value={settings.profile.company}
-              onChange={(e) => updateSetting('profile', 'company', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t.profile.phone}
-            </label>
-            <input
-              type="tel"
-              value={settings.profile.phone}
-              onChange={(e) => updateSetting('profile', 'phone', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all"
-              dir="ltr"
-            />
+
+          {/* Company & Phone - 2 Column on Desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t.profile.company}
+              </label>
+              <input
+                type="text"
+                value={settings.profile.company}
+                onChange={(e) => updateSetting('profile', 'company', e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t.profile.phone}
+              </label>
+              <input
+                type="tel"
+                value={settings.profile.phone}
+                onChange={(e) => updateSetting('profile', 'phone', e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+                dir="ltr"
+              />
+            </div>
           </div>
         </div>
       </SettingCard>
 
       {/* Password Change */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <Key className="w-5 h-5 text-brand-blue" />
+        <h4 className="font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-sm lg:text-base">
+          <Key className="w-4 h-4 lg:w-5 lg:h-5 text-brand-blue" />
           {t.profile.changePassword}
         </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder={t.profile.currentPassword}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
-            />
-            <button
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+        <div className="space-y-4">
+          {/* Current Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t.profile.currentPassword}
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
-          <div className="relative">
-            <input
-              type={showNewPassword ? 'text' : 'password'}
-              placeholder={t.profile.newPassword}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
-            />
-            <button
-              onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+
+          {/* New Password & Confirm - 2 Column on Desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t.profile.newPassword}
+              </label>
+              <div className="relative">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                >
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t.profile.confirmPassword}
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+              />
+            </div>
           </div>
-          <input
-            type="password"
-            placeholder={t.profile.confirmPassword}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
-          />
         </div>
       </SettingCard>
     </div>
@@ -623,52 +652,53 @@ export function Settings() {
 
   // Data Management
   const renderDataManagement = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 text-right hover:shadow-lg transition-all"
       >
-        <Download className="w-10 h-10 text-blue-500 mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1">{t.data.exportData}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t.data.exportDataDesc}</p>
+        <Download className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500 mb-3 lg:mb-4" />
+        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.exportData}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.exportDataDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800 text-right hover:shadow-lg transition-all"
       >
-        <Upload className="w-10 h-10 text-green-500 mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1">{t.data.importData}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t.data.importDataDesc}</p>
+        <Upload className="w-8 h-8 lg:w-10 lg:h-10 text-green-500 mb-3 lg:mb-4" />
+        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.importData}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.importDataDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-100 dark:border-amber-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-100 dark:border-amber-800 text-right hover:shadow-lg transition-all"
       >
-        <RefreshCw className="w-10 h-10 text-amber-500 mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1">{t.data.resetSettings}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t.data.resetSettingsDesc}</p>
+        <RefreshCw className="w-8 h-8 lg:w-10 lg:h-10 text-amber-500 mb-3 lg:mb-4" />
+        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.resetSettings}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.resetSettingsDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-6 rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 text-right hover:shadow-lg transition-all"
       >
-        <Trash2 className="w-10 h-10 text-red-500 mb-4" />
-        <h4 className="font-bold text-red-600 dark:text-red-400 mb-1">{t.data.deleteData}</h4>
-        <p className="text-sm text-red-500 dark:text-red-400">{t.data.deleteDataDesc}</p>
-        <div className="flex items-center gap-2 mt-3 text-xs text-red-400">
-          <AlertTriangle className="w-4 h-4" />
+        <Trash2 className="w-8 h-8 lg:w-10 lg:h-10 text-red-500 mb-3 lg:mb-4" />
+        <h4 className="font-bold text-red-600 dark:text-red-400 mb-1 text-sm lg:text-base">{t.data.deleteData}</h4>
+        <p className="text-xs lg:text-sm text-red-500 dark:text-red-400">{t.data.deleteDataDesc}</p>
+        <div className="flex items-center gap-2 mt-2 lg:mt-3 text-xs text-red-400">
+          <AlertTriangle className="w-3 h-3 lg:w-4 lg:h-4" />
           {t.data.warning}
         </div>
       </motion.button>
     </div>
   );
+
 
   // Appearance Settings
   const renderAppearanceSettings = () => (
@@ -689,8 +719,8 @@ export function Settings() {
               whileTap={{ scale: 0.97 }}
               onClick={() => updateSetting('appearance', 'theme', value)}
               className={`p-4 rounded-xl border-2 transition-all duration-300 ${settings.appearance.theme === value
-                  ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
                 }`}
             >
               <Icon className={`w-6 h-6 mx-auto mb-2 ${settings.appearance.theme === value ? 'text-brand-blue' : 'text-gray-400'
@@ -722,8 +752,8 @@ export function Settings() {
               whileTap={{ scale: 0.97 }}
               onClick={() => updateSetting('appearance', 'language', value)}
               className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-3 ${settings.appearance.language === value
-                  ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
                 }`}
             >
               <span className="text-2xl">{flag}</span>
@@ -767,8 +797,8 @@ export function Settings() {
               whileTap={{ scale: 0.97 }}
               onClick={() => updateSetting('appearance', 'fontSize', value)}
               className={`p-3 rounded-xl border-2 transition-all duration-300 ${settings.appearance.fontSize === value
-                  ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
                 }`}
             >
               <span className={`font-medium ${value === 'small' ? 'text-xs' : value === 'large' ? 'text-lg' : 'text-sm'
@@ -795,41 +825,69 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6 lg:space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-4 lg:space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-4 lg:p-6 border border-gray-100 dark:border-gray-700 shadow-lg"
       >
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-brand-blue to-purple-600 bg-clip-text text-transparent">
-            {t.title}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{t.subtitle}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-brand-blue to-purple-600 bg-clip-text text-transparent">
+              {t.title}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.subtitle}</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-brand-blue to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 text-sm lg:text-base w-full sm:w-auto"
+          >
+            {isSaving ? (
+              <RefreshCw className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 lg:w-5 lg:h-5" />
+            )}
+            {t.saveChanges}
+          </motion.button>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-6 py-3 bg-gradient-to-r from-brand-blue to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 disabled:opacity-70"
-        >
-          {isSaving ? (
-            <RefreshCw className="w-5 h-5 animate-spin" />
-          ) : (
-            <Save className="w-5 h-5" />
-          )}
-          {t.saveChanges}
-        </motion.button>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Navigation */}
+      {/* Mobile Horizontal Tabs */}
+      <div className="lg:hidden">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg p-2 overflow-x-auto">
+          <div className="flex gap-2 min-w-max">
+            {sections.map((section) => {
+              const Icon = section.icon;
+              const isActive = activeSection === section.id;
+              return (
+                <motion.button
+                  key={section.id}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setActiveSection(section.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 text-sm font-medium ${isActive
+                    ? 'bg-gradient-to-r from-brand-blue to-purple-600 text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                    }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{section.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Desktop Sidebar Navigation - Hidden on Mobile */}
         <motion.div
           initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-1"
+          className="hidden lg:block lg:col-span-1"
         >
           <div className="sticky top-24 rounded-2xl overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 shadow-lg p-2">
             <nav className="space-y-1">
@@ -843,8 +901,8 @@ export function Settings() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveSection(section.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-${isRTL ? 'right' : 'left'} transition-all duration-300 ${isActive
-                        ? 'bg-gradient-to-r from-brand-blue to-purple-600 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                      ? 'bg-gradient-to-r from-brand-blue to-purple-600 text-white shadow-md'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                       }`}
                   >
                     <Icon className="w-5 h-5" />

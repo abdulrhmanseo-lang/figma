@@ -22,6 +22,7 @@ const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
 
 export function PropertyModal({ isOpen, onClose, propertyId }: PropertyModalProps) {
   const { properties, addProperty, updateProperty } = useData();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     city: 'الرياض',
@@ -53,24 +54,37 @@ export function PropertyModal({ isOpen, onClose, propertyId }: PropertyModalProp
     }
   }, [propertyId, properties, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.address) {
-      toast.error('الرجاء إدخال جميع الحقول المطلوبة');
+    if (!formData.name.trim()) {
+      toast.error('الرجاء إدخال اسم العقار');
       return;
     }
 
-    if (propertyId) {
-      updateProperty(propertyId, formData);
-      toast.success('تم تحديث العقار بنجاح');
-    } else {
-      addProperty(formData);
-      toast.success('تم إضافة العقار بنجاح');
+    if (!formData.address.trim()) {
+      toast.error('الرجاء إدخال عنوان العقار');
+      return;
     }
 
-    onClose();
+    setIsSubmitting(true);
+    try {
+      if (propertyId) {
+        await updateProperty(propertyId, formData);
+        toast.success('تم تحديث العقار بنجاح');
+      } else {
+        await addProperty(formData);
+        toast.success('تم إضافة العقار بنجاح');
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error saving property:', error);
+      toast.error('حدث خطأ أثناء حفظ العقار. الرجاء المحاولة مرة أخرى.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
 
   const handleImageUpload = () => {
     // Mock image upload - in real app would handle file upload
@@ -201,10 +215,10 @@ export function PropertyModal({ isOpen, onClose, propertyId }: PropertyModalProp
 
           {/* Submit Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button type="submit" variant="gradient" className="flex-1">
-              {propertyId ? 'حفظ التعديلات' : 'إضافة العقار'}
+            <Button type="submit" variant="gradient" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? 'جاري الحفظ...' : (propertyId ? 'حفظ التعديلات' : 'إضافة العقار')}
             </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               إلغاء
             </Button>
           </div>
