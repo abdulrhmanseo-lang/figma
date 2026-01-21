@@ -370,8 +370,8 @@ export function Settings() {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white truncate">{settings.profile.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{settings.profile.email}</p>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800  truncate">{settings.profile.name}</h3>
+            <p className="text-sm text-gray-500  truncate">{settings.profile.email}</p>
             <span className="inline-block mt-2 px-3 py-1 bg-brand-blue/10 text-brand-blue text-xs rounded-full font-medium">
               {(t.profile.roles as any)[settings.profile.role]}
             </span>
@@ -384,52 +384,52 @@ export function Settings() {
         <div className="space-y-4">
           {/* Full Name - Full Width */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700  mb-2">
               {t.profile.fullName}
             </label>
             <input
               type="text"
               value={settings.profile.name}
               onChange={(e) => updateSetting('profile', 'name', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
             />
           </div>
 
           {/* Email - Full Width */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700  mb-2">
               {t.profile.email}
             </label>
             <input
               type="email"
               value={settings.profile.email}
               onChange={(e) => updateSetting('profile', 'email', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
             />
           </div>
 
           {/* Company & Phone - 2 Column on Desktop */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700  mb-2">
                 {t.profile.company}
               </label>
               <input
                 type="text"
                 value={settings.profile.company}
                 onChange={(e) => updateSetting('profile', 'company', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700  mb-2">
                 {t.profile.phone}
               </label>
               <input
                 type="tel"
                 value={settings.profile.phone}
                 onChange={(e) => updateSetting('profile', 'phone', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue transition-all text-sm lg:text-base"
                 dir="ltr"
               />
             </div>
@@ -439,21 +439,21 @@ export function Settings() {
 
       {/* Password Change */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-sm lg:text-base">
+        <h4 className="font-semibold text-gray-800  mb-4 flex items-center gap-2 text-sm lg:text-base">
           <Key className="w-4 h-4 lg:w-5 lg:h-5 text-brand-blue" />
           {t.profile.changePassword}
         </h4>
         <div className="space-y-4">
           {/* Current Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700  mb-2">
               {t.profile.currentPassword}
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
               />
               <button
                 type="button"
@@ -468,14 +468,14 @@ export function Settings() {
           {/* New Password & Confirm - 2 Column on Desktop */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700  mb-2">
                 {t.profile.newPassword}
               </label>
               <div className="relative">
                 <input
                   type={showNewPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
                 />
                 <button
                   type="button"
@@ -487,13 +487,13 @@ export function Settings() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700  mb-2">
                 {t.profile.confirmPassword}
               </label>
               <input
                 type="password"
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm lg:text-base"
               />
             </div>
           </div>
@@ -627,7 +627,7 @@ export function Settings() {
           <select
             value={settings.privacy.sessionTimeout}
             onChange={(e) => updateSetting('privacy', 'sessionTimeout', Number(e.target.value))}
-            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm"
+            className="px-4 py-2 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50 text-sm"
           >
             <option value={15}>15 {t.privacy.minutes}</option>
             <option value={30}>30 {t.privacy.minutes}</option>
@@ -656,37 +656,37 @@ export function Settings() {
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50   border border-blue-100  text-right hover:shadow-lg transition-all"
       >
         <Download className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500 mb-3 lg:mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.exportData}</h4>
-        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.exportDataDesc}</p>
+        <h4 className="font-bold text-gray-800  mb-1 text-sm lg:text-base">{t.data.exportData}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 ">{t.data.exportDataDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50   border border-green-100  text-right hover:shadow-lg transition-all"
       >
         <Upload className="w-8 h-8 lg:w-10 lg:h-10 text-green-500 mb-3 lg:mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.importData}</h4>
-        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.importDataDesc}</p>
+        <h4 className="font-bold text-gray-800  mb-1 text-sm lg:text-base">{t.data.importData}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 ">{t.data.importDataDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-100 dark:border-amber-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50   border border-amber-100  text-right hover:shadow-lg transition-all"
       >
         <RefreshCw className="w-8 h-8 lg:w-10 lg:h-10 text-amber-500 mb-3 lg:mb-4" />
-        <h4 className="font-bold text-gray-800 dark:text-white mb-1 text-sm lg:text-base">{t.data.resetSettings}</h4>
-        <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{t.data.resetSettingsDesc}</p>
+        <h4 className="font-bold text-gray-800  mb-1 text-sm lg:text-base">{t.data.resetSettings}</h4>
+        <p className="text-xs lg:text-sm text-gray-500 ">{t.data.resetSettingsDesc}</p>
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 text-right hover:shadow-lg transition-all"
+        className="p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gradient-to-br from-red-50 to-rose-50   border border-red-200  text-right hover:shadow-lg transition-all"
       >
         <Trash2 className="w-8 h-8 lg:w-10 lg:h-10 text-red-500 mb-3 lg:mb-4" />
         <h4 className="font-bold text-red-600 dark:text-red-400 mb-1 text-sm lg:text-base">{t.data.deleteData}</h4>
@@ -705,8 +705,8 @@ export function Settings() {
     <div className="space-y-6">
       {/* Theme Selection */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-2">{t.appearance.theme}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.appearance.themeDesc}</p>
+        <h4 className="font-semibold text-gray-800  mb-2">{t.appearance.theme}</h4>
+        <p className="text-sm text-gray-500  mb-4">{t.appearance.themeDesc}</p>
         <div className="grid grid-cols-3 gap-3">
           {[
             { value: 'light', label: t.appearance.light, icon: Sun },
@@ -720,12 +720,12 @@ export function Settings() {
               onClick={() => updateSetting('appearance', 'theme', value)}
               className={`p-4 rounded-xl border-2 transition-all duration-300 ${settings.appearance.theme === value
                 ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                : 'border-gray-200  hover:border-brand-blue/50'
                 }`}
             >
               <Icon className={`w-6 h-6 mx-auto mb-2 ${settings.appearance.theme === value ? 'text-brand-blue' : 'text-gray-400'
                 }`} />
-              <span className={`text-sm font-medium ${settings.appearance.theme === value ? 'text-brand-blue' : 'text-gray-600 dark:text-gray-300'
+              <span className={`text-sm font-medium ${settings.appearance.theme === value ? 'text-brand-blue' : 'text-gray-600 '
                 }`}>
                 {label}
               </span>
@@ -736,11 +736,11 @@ export function Settings() {
 
       {/* Language Selection */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
+        <h4 className="font-semibold text-gray-800  mb-2 flex items-center gap-2">
           <Globe className="w-5 h-5 text-brand-blue" />
           {t.appearance.language}
         </h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.appearance.languageDesc}</p>
+        <p className="text-sm text-gray-500  mb-4">{t.appearance.languageDesc}</p>
         <div className="grid grid-cols-2 gap-3">
           {[
             { value: 'ar', label: 'العربية', flag: '🇸🇦' },
@@ -753,11 +753,11 @@ export function Settings() {
               onClick={() => updateSetting('appearance', 'language', value)}
               className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-3 ${settings.appearance.language === value
                 ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                : 'border-gray-200  hover:border-brand-blue/50'
                 }`}
             >
               <span className="text-2xl">{flag}</span>
-              <span className={`font-medium ${settings.appearance.language === value ? 'text-brand-blue' : 'text-gray-600 dark:text-gray-300'
+              <span className={`font-medium ${settings.appearance.language === value ? 'text-brand-blue' : 'text-gray-600 '
                 }`}>
                 {label}
               </span>
@@ -768,12 +768,12 @@ export function Settings() {
 
       {/* Date Format */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-2">{t.appearance.dateFormat}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.appearance.dateFormatDesc}</p>
+        <h4 className="font-semibold text-gray-800  mb-2">{t.appearance.dateFormat}</h4>
+        <p className="text-sm text-gray-500  mb-4">{t.appearance.dateFormatDesc}</p>
         <select
           value={settings.appearance.dateFormat}
           onChange={(e) => updateSetting('appearance', 'dateFormat', e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-800  focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
         >
           <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2024)</option>
           <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2024)</option>
@@ -783,8 +783,8 @@ export function Settings() {
 
       {/* Font Size */}
       <SettingCard>
-        <h4 className="font-semibold text-gray-800 dark:text-white mb-2">{t.appearance.fontSize}</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.appearance.fontSizeDesc}</p>
+        <h4 className="font-semibold text-gray-800  mb-2">{t.appearance.fontSize}</h4>
+        <p className="text-sm text-gray-500  mb-4">{t.appearance.fontSizeDesc}</p>
         <div className="grid grid-cols-3 gap-3">
           {[
             { value: 'small', label: t.appearance.small },
@@ -798,11 +798,11 @@ export function Settings() {
               onClick={() => updateSetting('appearance', 'fontSize', value)}
               className={`p-3 rounded-xl border-2 transition-all duration-300 ${settings.appearance.fontSize === value
                 ? 'border-brand-blue bg-brand-blue/10 dark:bg-brand-blue/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-brand-blue/50'
+                : 'border-gray-200  hover:border-brand-blue/50'
                 }`}
             >
               <span className={`font-medium ${value === 'small' ? 'text-xs' : value === 'large' ? 'text-lg' : 'text-sm'
-                } ${settings.appearance.fontSize === value ? 'text-brand-blue' : 'text-gray-600 dark:text-gray-300'
+                } ${settings.appearance.fontSize === value ? 'text-brand-blue' : 'text-gray-600 '
                 }`}>
                 {label}
               </span>
@@ -830,14 +830,14 @@ export function Settings() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-4 lg:p-6 border border-gray-100 dark:border-gray-700 shadow-lg"
+        className="bg-white/80 /80 backdrop-blur-xl rounded-2xl p-4 lg:p-6 border border-gray-100  shadow-lg"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-brand-blue to-purple-600 bg-clip-text text-transparent">
               {t.title}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.subtitle}</p>
+            <p className="text-sm text-gray-500  mt-1">{t.subtitle}</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -858,7 +858,7 @@ export function Settings() {
 
       {/* Mobile Horizontal Tabs */}
       <div className="lg:hidden">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg p-2 overflow-x-auto">
+        <div className="bg-white/80 /80 backdrop-blur-xl rounded-2xl border border-gray-100  shadow-lg p-2 overflow-x-auto">
           <div className="flex gap-2 min-w-max">
             {sections.map((section) => {
               const Icon = section.icon;
@@ -870,7 +870,7 @@ export function Settings() {
                   onClick={() => setActiveSection(section.id)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 text-sm font-medium ${isActive
                     ? 'bg-gradient-to-r from-brand-blue to-purple-600 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                    : 'text-gray-600  hover:bg-gray-100 dark:hover:bg-gray-700/50'
                     }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -889,7 +889,7 @@ export function Settings() {
           animate={{ opacity: 1, x: 0 }}
           className="hidden lg:block lg:col-span-1"
         >
-          <div className="sticky top-24 rounded-2xl overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 shadow-lg p-2">
+          <div className="sticky top-24 rounded-2xl overflow-hidden bg-white/80 /80 backdrop-blur-xl border border-gray-100  shadow-lg p-2">
             <nav className="space-y-1">
               {sections.map((section) => {
                 const Icon = section.icon;
@@ -902,7 +902,7 @@ export function Settings() {
                     onClick={() => setActiveSection(section.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-${isRTL ? 'right' : 'left'} transition-all duration-300 ${isActive
                       ? 'bg-gradient-to-r from-brand-blue to-purple-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                      : 'text-gray-600  hover:bg-gray-100 dark:hover:bg-gray-700/50'
                       }`}
                   >
                     <Icon className="w-5 h-5" />
