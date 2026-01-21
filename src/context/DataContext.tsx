@@ -109,7 +109,25 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const DEMO_COMPANY_ID = 'demo-company';
+// Get company ID from Firebase auth session
+const getCompanyId = (): string => {
+  // Check if we have Firebase auth import and current user
+  if (typeof window !== 'undefined') {
+    // Try employee session from localStorage (for employee logins)
+    const employeeSession = localStorage.getItem('employeeSession');
+    if (employeeSession) {
+      try {
+        const employee = JSON.parse(employeeSession);
+        if (employee.companyId) return employee.companyId;
+      } catch (e) {
+        console.error('Error parsing employee session:', e);
+      }
+    }
+  }
+
+  // Fallback to demo company for testing
+  return 'demo-company';
+};
 
 // ========================
 // HELPER: Generate Payment Schedule
@@ -282,7 +300,7 @@ const allPermissions: { module: 'properties' | 'units' | 'tenants' | 'contracts'
 const initialEmployees: Employee[] = [
   {
     id: 'emp-1',
-    companyId: DEMO_COMPANY_ID,
+    companyId: getCompanyId(),
     fullName: 'أحمد محمد الأدمن',
     email: 'admin@arkan.sa',
     password: 'Admin@2024',
@@ -377,27 +395,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       // Fetch properties
-      const { data: propertiesData } = await supabase.from('properties').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: propertiesData } = await supabase.from('properties').select('*').eq('company_id', getCompanyId());
       if (propertiesData) setProperties(propertiesData.map(mapPropertyFromDB));
 
       // Fetch units
-      const { data: unitsData } = await supabase.from('units').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: unitsData } = await supabase.from('units').select('*').eq('company_id', getCompanyId());
       if (unitsData) setUnits(unitsData.map(mapUnitFromDB));
 
       // Fetch tenants
-      const { data: tenantsData } = await supabase.from('tenants').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: tenantsData } = await supabase.from('tenants').select('*').eq('company_id', getCompanyId());
       if (tenantsData) setTenants(tenantsData.map(mapTenantFromDB));
 
       // Fetch contracts
-      const { data: contractsData } = await supabase.from('contracts').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: contractsData } = await supabase.from('contracts').select('*').eq('company_id', getCompanyId());
       if (contractsData) setContracts(contractsData.map(mapContractFromDB));
 
       // Fetch payments
-      const { data: paymentsData } = await supabase.from('payments').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: paymentsData } = await supabase.from('payments').select('*').eq('company_id', getCompanyId());
       if (paymentsData) setPayments(paymentsData.map(mapPaymentFromDB));
 
       // Fetch maintenance requests
-      const { data: maintenanceData } = await supabase.from('maintenance_requests').select('*').eq('company_id', DEMO_COMPANY_ID);
+      const { data: maintenanceData } = await supabase.from('maintenance_requests').select('*').eq('company_id', getCompanyId());
       if (maintenanceData) setMaintenanceRequests(maintenanceData.map(mapMaintenanceFromDB));
 
     } catch (error) {
@@ -461,7 +479,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addProperty = async (property: Omit<Property, 'id' | 'companyId' | 'createdAt'>) => {
     console.log('Adding property:', property);
     const { data, error } = await supabase.from('properties').insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: getCompanyId(),
       name: property.name,
       city: property.city,
       address: property.address,
@@ -521,7 +539,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addUnit = async (unit: Omit<Unit, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await supabase.from('units').insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: getCompanyId(),
       property_id: unit.propertyId,
       property_name: unit.propertyName,
       unit_no: unit.unitNo,
@@ -568,7 +586,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addTenant = async (tenant: Omit<Tenant, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await supabase.from('tenants').insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: getCompanyId(),
       full_name: tenant.fullName,
       national_id: tenant.nationalId,
       phone: tenant.phone,
@@ -600,7 +618,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addContract = async (contract: Omit<Contract, 'id' | 'companyId' | 'createdAt'>) => {
     // Insert contract
     const { data, error } = await supabase.from('contracts').insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: getCompanyId(),
       property_id: contract.propertyId,
       property_name: contract.propertyName,
       unit_id: contract.unitId,
@@ -630,7 +648,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       for (const payment of newPayments) {
         await supabase.from('payments').insert({
-          company_id: DEMO_COMPANY_ID,
+          company_id: getCompanyId(),
           contract_id: payment.contractId,
           tenant_name: payment.tenantName,
           unit_no: payment.unitNo,
@@ -700,7 +718,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addMaintenanceRequest = async (request: Omit<MaintenanceRequest, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await supabase.from('maintenance_requests').insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: getCompanyId(),
       property_id: request.propertyId,
       property_name: request.propertyName,
       unit_id: request.unitId,
@@ -742,7 +760,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const newEmployee: Employee = {
       ...employee,
       id: `emp-${Date.now()}`,
-      companyId: DEMO_COMPANY_ID,
+      companyId: getCompanyId(),
       createdAt: new Date().toISOString(),
     };
     setEmployees(prev => [...prev, newEmployee]);
@@ -765,7 +783,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const newTask: Task = {
       ...task,
       id: `task-${Date.now()}`,
-      companyId: DEMO_COMPANY_ID,
+      companyId: getCompanyId(),
       comments: [],
       history: [{
         id: `h-${Date.now()}`,
