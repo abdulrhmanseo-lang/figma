@@ -22,50 +22,64 @@ export const PricingPage = () => {
     const plans = [
         {
             name: "الأساسية",
-            price: "629",
+            price: "999",
+            originalPrice: "1,599",
+            promoText: "خصم 40% لأول 3 أشهر",
             desc: "مثالية للملاك الأفراد",
             icon: Star,
             features: [
-                "إدارة حتى 30 وحدة",
-                "3 مستخدمين",
+                "إدارة حتى 50 وحدة عقارية",
+                "5 مستخدمين",
                 "إدارة العقود وإصدار PDF",
-                "دفع إلكتروني",
-                "تنبيهات تجديد العقود",
-                "لوحة تحكم عصرية"
+                "دفع إلكتروني متعدد القنوات",
+                "تنبيهات ذكية لتجديد العقود",
+                "لوحة تحكم تفاعلية عصرية",
+                "تقارير أساسية PDF",
+                "دعم فني عبر البريد"
             ]
         },
         {
             name: "المتقدمة",
-            price: "1,329",
+            price: "2,099",
+            originalPrice: "3,499",
+            promoText: "خصم 40% لأول 3 أشهر",
             desc: "للشركات العقارية المتوسطة",
             popular: true,
             icon: Zap,
             features: [
-                "120 وحدة عقارية",
-                "10 مستخدمين",
-                "نظام صيانة متكامل",
+                "إدارة حتى 200 وحدة عقارية",
+                "15 مستخدم مع صلاحيات مخصصة",
+                "نظام صيانة متكامل مع تتبع",
                 "تحليلات الذكاء الاصطناعي (تسعير + إشغال)",
-                "تقارير مالية شهرية",
-                "فواتير تلقائية PDF",
-                "دعم فني ذو أولوية"
+                "تقارير مالية تفصيلية شهرية",
+                "فواتير تلقائية احترافية PDF",
+                "نظام إشعارات متقدم (SMS + Email)",
+                "تطبيق جوال للموظفين",
+                "دعم فني ذو أولوية عالية"
             ]
         },
         {
             name: "الشركات",
-            price: "2,449",
+            price: "3,899",
+            originalPrice: "6,499",
+            promoText: "خصم 40% لأول 3 أشهر",
             desc: "للمؤسسات الكبيرة والمجمعات",
             icon: Building2,
             features: [
                 "وحدات عقارية غير محدودة",
                 "مستخدمين غير محدودين",
-                "ربط برمجي (API)",
-                "نظام صلاحيات متقدم",
-                "إدارة الفنيين والصيانة",
+                "ربط برمجي كامل (API)",
+                "نظام صلاحيات متقدم ومرن",
+                "إدارة الفنيين والصيانة المتكاملة",
                 "تحليلات مالية وتشغيلية شاملة",
-                "دعم فني متميز (Premium)"
+                "تقارير مخصصة حسب الطلب",
+                "تكامل مع أنظمة المحاسبة",
+                "مدير حساب مخصص",
+                "دعم فني متميز 24/7 (Premium)"
             ]
         }
     ];
+
 
     return (
         <Layout>
@@ -96,8 +110,16 @@ export const PricingPage = () => {
                                     <p className="text-gray-500">{plan.desc}</p>
                                 </div>
                                 <div className="mb-8">
-                                    <span className="text-4xl font-bold text-brand-dark">{plan.price}</span>
-                                    <span className="text-gray-500 mr-2">ريال / شهرياً</span>
+                                    {plan.originalPrice && (
+                                        <div className="flex flex-col mb-2">
+                                            <span className="text-sm text-green-600 font-bold bg-green-50 w-fit px-2 py-1 rounded-lg mb-1">{plan.promoText}</span>
+                                            <span className="text-gray-400 line-through text-lg">{plan.originalPrice} ريال</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-4xl font-bold text-brand-dark">{plan.price}</span>
+                                        <span className="text-gray-500">ريال / شهرياً</span>
+                                    </div>
                                 </div>
                                 <div className="flex-grow mb-8 space-y-4">
                                     {plan.features.map((feature, fIdx) => (
@@ -138,11 +160,11 @@ export const PricingPage = () => {
                             </div>
                             <div className="flex flex-col items-end gap-3 shrink-0">
                                 <div className="text-white text-right">
-                                    <span className="text-3xl font-bold">419</span>
+                                    <span className="text-3xl font-bold">669</span>
                                     <span className="text-blue-100 mr-2">ريال / شهرياً</span>
                                 </div>
                                 <Button
-                                    onClick={() => handleSubscribe({ name: "باقة الذكاء الاصطناعي", price: "419", features: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"] })}
+                                    onClick={() => handleSubscribe({ name: "باقة الذكاء الاصطناعي", price: "669", features: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"] })}
                                     className="bg-white text-brand-dark hover:bg-gray-100 w-full md:w-auto"
                                 >
                                     إضافة للباقة

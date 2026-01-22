@@ -162,10 +162,41 @@ export const LandingPage = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {[
-                            { name: "الأساسية", price: "629", role: "للملاك الأفراد", feat: ["إدارة حتى 30 وحدة", "3 مستخدمين", "إدارة العقود وإصدار PDF", "دفع إلكتروني", "تنبيهات تجديد العقود", "لوحة تحكم عصرية"], rec: false },
-                            { name: "المتقدمة", price: "1,329", role: "للشركات العقارية", feat: ["120 وحدة عقارية", "10 مستخدمين", "نظام صيانة متكامل", "تحليلات AI (تسعير+إشغال)", "تقارير مالية شهرية", "فواتير تلقائية PDF", "دعم فني ذو أولوية"], rec: true },
-                            { name: "الشركات", price: "2,449", role: "للمؤسسات الكبرى", feat: ["وحدات غير محدودة", "مستخدمين غير محدودين", "ربط برمجي (API)", "نظام صلاحيات متقدم", "إدارة الفنيين والصيانة", "تحليلات مالية شاملة", "دعم فني Premium"], rec: false },
-                            { name: "Arkan AI", price: "419", role: "إضافة ذكية", feat: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"], rec: false, addon: true }
+                            {
+                                name: "الأساسية",
+                                price: "999",
+                                originalPrice: "1,599",
+                                promoText: "خصم 40% لأول 3 أشهر",
+                                role: "للملاك الأفراد",
+                                feat: ["إدارة حتى 50 وحدة عقارية", "5 مستخدمين", "إدارة العقود وإصدار PDF", "دفع إلكتروني متعدد القنوات", "تنبيهات ذكية لتجديد العقود", "لوحة تحكم تفاعلية عصرية"],
+                                rec: false
+                            },
+                            {
+                                name: "المتقدمة",
+                                price: "2,099",
+                                originalPrice: "3,499",
+                                promoText: "خصم 40% لأول 3 أشهر",
+                                role: "للشركات العقارية",
+                                feat: ["إدارة حتى 200 وحدة عقارية", "15 مستخدم مع صلاحيات", "نظام صيانة متكامل مع تتبع", "تحليلات AI (تسعير+إشغال)", "تقارير مالية تفصيلية", "فواتير تلقائية احترافية", "دعم فني ذو أولوية عالية"],
+                                rec: true
+                            },
+                            {
+                                name: "الشركات",
+                                price: "3,899",
+                                originalPrice: "6,499",
+                                promoText: "خصم 40% لأول 3 أشهر",
+                                role: "للمؤسسات الكبرى",
+                                feat: ["وحدات غير محدودة", "مستخدمين غير محدودين", "ربط برمجي كامل (API)", "نظام صلاحيات متقدم ومرن", "إدارة صيانة متكاملة", "تحليلات مالية شاملة", "دعم فني Premium 24/7"],
+                                rec: false
+                            },
+                            {
+                                name: "Arkan AI",
+                                price: "669",
+                                role: "إضافة ذكية",
+                                feat: ["محرك تسعير ذكي", "توقعات نسب الإشغال", "تحليل مخاطر المستأجرين", "تنبيهات مالية ذكية"],
+                                rec: false,
+                                addon: true
+                            }
                         ].map((p, i) => (
                             <div
                                 key={i}
@@ -179,8 +210,16 @@ export const LandingPage = () => {
                                 <p className="text-sm text-gray-400 mb-8 font-medium">{p.role}</p>
 
                                 <div className="mb-8">
-                                    <span className="text-4xl font-bold text-brand-dark">{p.price}</span>
-                                    <span className="text-gray-500 text-sm mr-2">ر.س /شهر</span>
+                                    {(p as any).originalPrice && (
+                                        <div className="flex flex-col mb-2">
+                                            <span className="text-[10px] text-green-600 font-bold bg-green-50 w-fit px-2 py-0.5 rounded-lg mb-1">{(p as any).promoText}</span>
+                                            <span className="text-gray-400 line-through text-sm">{(p as any).originalPrice} ر.س</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-4xl font-bold text-brand-dark">{p.price}</span>
+                                        <span className="text-gray-500 text-sm">ر.س /شهر</span>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4 mb-8 flex-grow">
