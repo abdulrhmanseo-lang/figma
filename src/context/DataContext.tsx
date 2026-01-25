@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 import type {
   Property,
   Unit,
@@ -104,26 +105,6 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-
-// Get company ID from Firebase auth session
-const getCompanyId = (): string => {
-  // Check if we have Firebase auth import and current user
-  if (typeof window !== 'undefined') {
-    // Try employee session from localStorage (for employee logins)
-    const employeeSession = localStorage.getItem('employeeSession');
-    if (employeeSession) {
-      try {
-        const employee = JSON.parse(employeeSession);
-        if (employee.companyId) return employee.companyId;
-      } catch (e) {
-        console.error('Error parsing employee session:', e);
-      }
-    }
-  }
-
-  // Fallback to demo company for testing
-  return 'demo-company';
-};
 
 // ========================
 // HELPER: Generate Payment Schedule
@@ -296,7 +277,7 @@ const allPermissions: { module: 'properties' | 'units' | 'tenants' | 'contracts'
 const initialEmployees: Employee[] = [
   {
     id: 'emp-1',
-    companyId: getCompanyId(),
+    companyId: 'demo-company',
     fullName: 'أحمد محمد الأدمن',
     email: 'admin@arkan.sa',
     password: 'Admin@2024',
@@ -349,6 +330,7 @@ function saveToStorage<T>(key: string, data: T): void {
 // ========================
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { tenantUser, isSuperAdmin } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -365,6 +347,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
     loadFromStorage(STORAGE_KEYS.notifications, initialNotifications)
   );
   const [loading, setLoading] = useState(true);
+
+  // Derived company ID based on current user/session
+  const currentCompanyId = useMemo(() => {
+    // 1. Try employee session from localStorage
+    if (typeof window !== 'undefined') {
+      const employeeSession = localStorage.getItem('employeeSession');
+      if (employeeSession) {
+        try {
+          const employee = JSON.parse(employeeSession);
+          if (employee.companyId) return employee.companyId;
+        } catch (e) {
+          console.error('Error parsing employee session:', e);
+        }
+      }
+    }
+
+    // 2. Try tenant user from AuthContext
+    if (tenantUser?.companyId) return tenantUser.companyId;
+
+    // 3. Fallback for Super Admin (they often act on a default or picked company)
+    if (isSuperAdmin) return 'default-company';
+
+    // 4. Default fallback
+    return 'demo-company';
+  }, [tenantUser, isSuperAdmin]);
 
   // Save employees to localStorage when changed
   useEffect(() => {
@@ -388,30 +395,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const refreshData = useCallback(async () => {
+    if (!currentCompanyId) return;
     setLoading(true);
     try {
       // Fetch properties
-      const { data: propertiesData } = await supabase.from('properties').select('*').eq('company_id', getCompanyId());
+      const { data: propertiesData } = await supabase.from('properties').select('*').eq('company_id', currentCompanyId);
       if (propertiesData) setProperties(propertiesData.map(mapPropertyFromDB));
 
       // Fetch units
-      const { data: unitsData } = await supabase.from('units').select('*').eq('company_id', getCompanyId());
+      const { data: unitsData } = await supabase.from('units').select('*').eq('company_id', currentCompanyId);
       if (unitsData) setUnits(unitsData.map(mapUnitFromDB));
 
       // Fetch tenants
-      const { data: tenantsData } = await supabase.from('tenants').select('*').eq('company_id', getCompanyId());
+      const { data: tenantsData } = await supabase.from('tenants').select('*').eq('company_id', currentCompanyId);
       if (tenantsData) setTenants(tenantsData.map(mapTenantFromDB));
 
       // Fetch contracts
-      const { data: contractsData } = await supabase.from('contracts').select('*').eq('company_id', getCompanyId());
+      const { data: contractsData } = await supabase.from('contracts').select('*').eq('company_id', currentCompanyId);
       if (contractsData) setContracts(contractsData.map(mapContractFromDB));
 
       // Fetch payments
-      const { data: paymentsData } = await supabase.from('payments').select('*').eq('company_id', getCompanyId());
+      const { data: paymentsData } = await supabase.from('payments').select('*').eq('company_id', currentCompanyId);
       if (paymentsData) setPayments(paymentsData.map(mapPaymentFromDB));
 
       // Fetch maintenance requests
-      const { data: maintenanceData } = await supabase.from('maintenance_requests').select('*').eq('company_id', getCompanyId());
+      const { data: maintenanceData } = await supabase.from('maintenance_requests').select('*').eq('company_id', currentCompanyId);
       if (maintenanceData) setMaintenanceRequests(maintenanceData.map(mapMaintenanceFromDB));
 
     } catch (error) {
@@ -419,7 +427,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentCompanyId]);
 
   useEffect(() => {
     refreshData();
@@ -475,7 +483,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addProperty = async (property: Omit<Property, 'id' | 'companyId' | 'createdAt'>) => {
     console.log('Adding property:', property);
     const { data, error } = await (supabase.from('properties') as any).insert({
-      company_id: getCompanyId(),
+      company_id: currentCompanyId,
       name: property.name,
       city: property.city,
       address: property.address,
@@ -535,7 +543,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addUnit = async (unit: Omit<Unit, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await (supabase.from('units') as any).insert({
-      company_id: getCompanyId(),
+      company_id: currentCompanyId,
       property_id: unit.propertyId,
       property_name: unit.propertyName,
       unit_no: unit.unitNo,
@@ -582,7 +590,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addTenant = async (tenant: Omit<Tenant, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await (supabase.from('tenants') as any).insert({
-      company_id: getCompanyId(),
+      company_id: currentCompanyId,
       full_name: tenant.fullName,
       national_id: tenant.nationalId,
       phone: tenant.phone,
@@ -614,7 +622,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addContract = async (contract: Omit<Contract, 'id' | 'companyId' | 'createdAt'>) => {
     // Insert contract
     const { data, error } = await (supabase.from('contracts') as any).insert({
-      company_id: getCompanyId(),
+      company_id: currentCompanyId,
       property_id: contract.propertyId,
       property_name: contract.propertyName,
       unit_id: contract.unitId,
@@ -644,7 +652,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       for (const payment of newPayments) {
         await (supabase.from('payments') as any).insert({
-          company_id: getCompanyId(),
+          company_id: currentCompanyId,
           contract_id: payment.contractId,
           tenant_name: payment.tenantName,
           unit_no: payment.unitNo,
@@ -714,7 +722,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addMaintenanceRequest = async (request: Omit<MaintenanceRequest, 'id' | 'companyId' | 'createdAt'>) => {
     const { error } = await (supabase.from('maintenance_requests') as any).insert({
-      company_id: getCompanyId(),
+      company_id: currentCompanyId,
       property_id: request.propertyId,
       property_name: request.propertyName,
       unit_id: request.unitId,
@@ -756,7 +764,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const newEmployee: Employee = {
       ...employee,
       id: `emp-${Date.now()}`,
-      companyId: getCompanyId(),
+      companyId: currentCompanyId,
       createdAt: new Date().toISOString(),
     };
     setEmployees(prev => [...prev, newEmployee]);
@@ -779,7 +787,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const newTask: Task = {
       ...task,
       id: `task-${Date.now()}`,
-      companyId: getCompanyId(),
+      companyId: currentCompanyId,
       comments: [],
       history: [{
         id: `h-${Date.now()}`,
