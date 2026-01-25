@@ -118,8 +118,22 @@ export function Omnibox() {
                                                 <p className="font-bold text-slate-800 truncate">{result.label}</p>
                                                 <p className="text-xs text-slate-500">{result.category}</p>
                                             </div>
-                                            <div className="text-xs text-slate-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all">
-                                                انقر للانتقال
+                                            <div className="flex items-center gap-2">
+                                                {result.type === 'tenant' && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            alert(`جاري تجهيز بريد إلكتروني لـ: ${result.label}\nسيتم الإرسال عبر النظام الداخلي.`);
+                                                        }}
+                                                        className="p-2 hover:bg-brand-purple/10 rounded-lg text-brand-purple transition-colors"
+                                                        title="إرسال بريد سريع"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                <div className="text-xs text-slate-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all">
+                                                    انقر للانتقال
+                                                </div>
                                             </div>
                                         </button>
                                     ))}

@@ -1,6 +1,7 @@
 import { Payment, Contract, Tenant } from '../types/database';
 import { FinancialBehaviorEngine } from './FinancialBehaviorEngine';
 import { SystemLogger } from './SystemLogger';
+import { InternalEmailEngine } from './InternalEmailEngine';
 
 export interface AutomatedMessage {
     type: 'whatsapp' | 'email' | 'in_app';
@@ -33,6 +34,16 @@ export class NotificationAutomation {
                     messageAr: `تذكير لطيف: دفعتك بقيمة ${payment.amount} ر.س للوحدة ${payment.unitNo} لا تزال ضمن فترة السماح. يرجى السداد بحلول ${payment.dueDate} لتجنب غرامات التأخير.`,
                     trigger: 'payment_grace_period'
                 });
+
+                if (tenant.email) {
+                    queue.push({
+                        type: 'email',
+                        target: tenant.email,
+                        messageEn: `Payment reminder for unit ${payment.unitNo}. Due date: ${payment.dueDate}.`,
+                        messageAr: `تذكير بسداد قيمة إيجار الوحدة ${payment.unitNo}. تاريخ الاستحقاق: ${payment.dueDate}.`,
+                        trigger: 'payment_grace_period'
+                    });
+                }
             }
         });
 
@@ -92,8 +103,21 @@ export class NotificationAutomation {
      */
     static async sendMessages(messages: AutomatedMessage[]): Promise<void> {
         for (const msg of messages) {
-            // Here you would call Twilio or another API
-            // For now, we log it as a successful automated action
+            if (msg.type === 'email') {
+                const html = InternalEmailEngine.generateTemplate(
+                    msg.trigger === 'payment_escalation' ? 'إنذار تأخير سداد' : 'تنبيه من نظام أركان',
+                    msg.messageAr
+                );
+                await InternalEmailEngine.sendEmail({
+                    to: msg.target,
+                    message: {
+                        subject: msg.trigger === 'payment_escalation' ? 'إنذار هام: تأخير سداد' : 'تذكير بموعد استحقاق - أركان',
+                        html
+                    }
+                });
+            }
+
+            // Log everything
             SystemLogger.logInfo(
                 'automation',
                 `send_${msg.type}`,
