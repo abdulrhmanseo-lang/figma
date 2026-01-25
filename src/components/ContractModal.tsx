@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
@@ -23,7 +22,7 @@ export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }
     rentAmount: 0,
     paymentFrequency: 'monthly' as PaymentFrequency,
     status: 'active' as ContractStatus,
-    deposit: 0,
+    depositAmount: 0,
     notes: '',
   });
 
@@ -44,7 +43,7 @@ export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }
           rentAmount: contract.rentAmount,
           paymentFrequency: contract.paymentFrequency,
           status: contract.status,
-          deposit: contract.deposit || 0,
+          depositAmount: contract.depositAmount,
           notes: contract.notes || '',
         });
       }
@@ -59,7 +58,7 @@ export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }
         rentAmount: unit?.rentAmount || 0,
         paymentFrequency: 'monthly',
         status: 'active',
-        deposit: 0,
+        depositAmount: 0,
         notes: '',
       });
     }
@@ -94,11 +93,24 @@ export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }
       return;
     }
 
+    const unit = units.find(u => u.id === formData.unitId);
+    const tenant = tenants.find(t => t.id === formData.tenantId);
+
     if (contractId) {
-      updateContract(contractId, formData);
+      updateContract(contractId, formData as any);
       toast.success('تم تحديث العقد بنجاح');
     } else {
-      addContract(formData);
+      if (!unit || !tenant) return;
+
+      const fullContractData = {
+        ...formData,
+        propertyId: unit.propertyId,
+        propertyName: unit.propertyName,
+        unitNo: unit.unitNo,
+        tenantName: tenant.fullName,
+      };
+
+      addContract(fullContractData);
       toast.success('تم إنشاء العقد وجدول الدفعات');
     }
 
@@ -223,8 +235,8 @@ export function ContractModal({ isOpen, onClose, contractId, preselectedUnitId }
             <input
               type="number"
               min="0"
-              value={formData.deposit}
-              onChange={(e) => setFormData({ ...formData, deposit: parseInt(e.target.value) || 0 })}
+              value={formData.depositAmount}
+              onChange={(e) => setFormData({ ...formData, depositAmount: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               placeholder="اختياري"
             />

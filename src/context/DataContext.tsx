@@ -9,13 +9,9 @@ import type {
   MaintenanceRequest,
   DashboardKPI,
   PaymentFrequency,
-  UnitStatus,
-  PaymentStatus,
-  MaintenanceStatus,
   Employee,
   Task,
   TaskStatus,
-  TaskHistoryItem,
   Notification,
 } from '../types/database';
 import type {
@@ -478,7 +474,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addProperty = async (property: Omit<Property, 'id' | 'companyId' | 'createdAt'>) => {
     console.log('Adding property:', property);
-    const { data, error } = await supabase.from('properties').insert({
+    const { data, error } = await (supabase.from('properties') as any).insert({
       company_id: getCompanyId(),
       name: property.name,
       city: property.city,
@@ -487,7 +483,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       description: property.description || null,
       notes: property.notes || null,
       images: property.images || [],
-    }).select();
+    } as any).select();
 
     if (error) {
       console.error('Error adding property:', error);
@@ -509,7 +505,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (property.notes !== undefined) updateData.notes = property.notes;
     if (property.images) updateData.images = property.images;
 
-    const { error } = await supabase.from('properties').update(updateData).eq('id', id);
+    const { error } = await (supabase.from('properties') as any).update(updateData as any).eq('id', id);
 
     if (error) {
       console.error('Error updating property:', error);
@@ -538,7 +534,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const addUnit = async (unit: Omit<Unit, 'id' | 'companyId' | 'createdAt'>) => {
-    const { error } = await supabase.from('units').insert({
+    const { error } = await (supabase.from('units') as any).insert({
       company_id: getCompanyId(),
       property_id: unit.propertyId,
       property_name: unit.propertyName,
@@ -552,7 +548,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       rent_amount: unit.rentAmount,
       status: unit.status || 'vacant',
       images: unit.images,
-    });
+    } as any);
     if (!error) await refreshData();
   };
 
@@ -571,7 +567,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (unit.status) updateData.status = unit.status;
     if (unit.images) updateData.images = unit.images;
 
-    const { error } = await supabase.from('units').update(updateData).eq('id', id);
+    const { error } = await (supabase.from('units') as any).update(updateData as any).eq('id', id);
     if (!error) await refreshData();
   };
 
@@ -585,13 +581,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const addTenant = async (tenant: Omit<Tenant, 'id' | 'companyId' | 'createdAt'>) => {
-    const { error } = await supabase.from('tenants').insert({
+    const { error } = await (supabase.from('tenants') as any).insert({
       company_id: getCompanyId(),
       full_name: tenant.fullName,
       national_id: tenant.nationalId,
       phone: tenant.phone,
       email: tenant.email,
-    });
+    } as any);
     if (!error) await refreshData();
   };
 
@@ -602,7 +598,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (tenant.phone) updateData.phone = tenant.phone;
     if (tenant.email !== undefined) updateData.email = tenant.email;
 
-    const { error } = await supabase.from('tenants').update(updateData).eq('id', id);
+    const { error } = await (supabase.from('tenants') as any).update(updateData as any).eq('id', id);
     if (!error) await refreshData();
   };
 
@@ -617,7 +613,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addContract = async (contract: Omit<Contract, 'id' | 'companyId' | 'createdAt'>) => {
     // Insert contract
-    const { data, error } = await supabase.from('contracts').insert({
+    const { data, error } = await (supabase.from('contracts') as any).insert({
       company_id: getCompanyId(),
       property_id: contract.propertyId,
       property_name: contract.propertyName,
@@ -632,7 +628,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deposit_amount: contract.depositAmount,
       notes: contract.notes,
       status: contract.status || 'active',
-    }).select().single();
+    } as any).select().single();
 
     if (!error && data) {
       // Generate and insert payments
@@ -647,7 +643,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       );
 
       for (const payment of newPayments) {
-        await supabase.from('payments').insert({
+        await (supabase.from('payments') as any).insert({
           company_id: getCompanyId(),
           contract_id: payment.contractId,
           tenant_name: payment.tenantName,
@@ -655,11 +651,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
           due_date: payment.dueDate,
           amount: payment.amount,
           status: payment.status,
-        });
+        } as any);
       }
 
       // Update unit status to rented
-      await supabase.from('units').update({ status: 'rented' }).eq('id', contract.unitId);
+      await (supabase.from('units') as any).update({ status: 'rented' } as any).eq('id', contract.unitId);
 
       await refreshData();
     }
@@ -671,12 +667,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (contract.notes !== undefined) updateData.notes = contract.notes;
     if (contract.rentAmount !== undefined) updateData.rent_amount = contract.rentAmount;
 
-    const { error } = await supabase.from('contracts').update(updateData).eq('id', id);
+    const { error } = await (supabase.from('contracts') as any).update(updateData as any).eq('id', id);
 
     if (!error && contract.status === 'ended') {
       const existingContract = contracts.find(c => c.id === id);
       if (existingContract) {
-        await supabase.from('units').update({ status: 'vacant' }).eq('id', existingContract.unitId);
+        await (supabase.from('units') as any).update({ status: 'vacant' } as any).eq('id', existingContract.unitId);
       }
     }
 
@@ -692,7 +688,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.from('contracts').delete().eq('id', id);
 
     if (!error && contract) {
-      await supabase.from('units').update({ status: 'vacant' }).eq('id', contract.unitId);
+      await (supabase.from('units') as any).update({ status: 'vacant' } as any).eq('id', contract.unitId);
       await refreshData();
     }
   };
@@ -702,12 +698,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const recordPayment = async (paymentId: string, method: 'cash' | 'bank' | 'online', reference?: string) => {
-    const { error } = await supabase.from('payments').update({
+    const { error } = await (supabase.from('payments') as any).update({
       status: 'paid',
       paid_at: new Date().toISOString(),
       method,
       reference: reference || null,
-    }).eq('id', paymentId);
+    } as any).eq('id', paymentId);
 
     if (!error) await refreshData();
   };
@@ -717,7 +713,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ========================
 
   const addMaintenanceRequest = async (request: Omit<MaintenanceRequest, 'id' | 'companyId' | 'createdAt'>) => {
-    const { error } = await supabase.from('maintenance_requests').insert({
+    const { error } = await (supabase.from('maintenance_requests') as any).insert({
       company_id: getCompanyId(),
       property_id: request.propertyId,
       property_name: request.propertyName,
@@ -730,7 +726,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       cost: request.cost || 0,
       requested_by: request.requestedBy,
       assigned_to: request.assignedTo,
-    });
+    } as any);
     if (!error) await refreshData();
   };
 
@@ -743,7 +739,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (request.cost !== undefined) updateData.cost = request.cost;
     if (request.assignedTo !== undefined) updateData.assigned_to = request.assignedTo;
 
-    const { error } = await supabase.from('maintenance_requests').update(updateData).eq('id', id);
+    const { error } = await (supabase.from('maintenance_requests') as any).update(updateData as any).eq('id', id);
     if (!error) await refreshData();
   };
 

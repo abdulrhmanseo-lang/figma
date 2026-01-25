@@ -9,12 +9,10 @@ import type {
     TenantUser,
     UserSession,
     ContextSwitchLog,
-    CompanySettings,
+} from '../types/multiTenantTypes';
+import {
     DEFAULT_COMPANY_SETTINGS,
     ROLE_PERMISSIONS,
-    isSuperAdmin,
-    getSuperAdminContext,
-    getDefaultCompanyContext
 } from '../types/multiTenantTypes';
 import { SystemLogger } from './SystemLogger';
 

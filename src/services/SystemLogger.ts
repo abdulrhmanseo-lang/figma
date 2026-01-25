@@ -371,7 +371,7 @@ export function createAuditEntry(
 // PERFORMANCE TRACKING
 // ========================
 
-export function trackPerformance(operation: string): () => PerformanceMetric {
+export function trackPerformance(operation: string): (success?: boolean, metadata?: Record<string, any>) => PerformanceMetric {
     const startTime = performance.now();
 
     return (success: boolean = true, metadata?: Record<string, any>) => {

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Search, FileText, Calendar, Home, Edit, Trash2, CreditCard } from 'lucide-react';
+import { Plus, Search, FileText, Calendar, Edit, Trash2, CreditCard } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { ContractModal } from '../components/ContractModal';
 import { motion } from 'motion/react';

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Search, Eye, Edit, Trash2, Building2, MapPin, Home } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { PropertyModal } from '../components/PropertyModal';
+import { PropertyMapView } from '../components/PropertyMapView';
 import { motion } from 'motion/react';
 import { Button } from '../components/ui/button';
 
@@ -57,6 +58,17 @@ export function Properties() {
 
   return (
     <div className="space-y-4 lg:space-y-6">
+      {/* Property Map View (Insights) */}
+      {properties.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <PropertyMapView />
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

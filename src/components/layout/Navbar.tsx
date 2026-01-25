@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Home, Star, Building2, Info, MessageCircle, CreditCard, User as UserIcon, LogOut } from 'lucide-react';
@@ -46,7 +46,7 @@ export const Navbar = () => {
                     {user ? (
                         <div className="flex items-center gap-3 pl-2">
                             <div className="hidden md:flex flex-col items-end mr-2">
-                                <span className="text-sm font-bold text-brand-dark">{user.name}</span>
+                                <span className="text-sm font-bold text-brand-dark">{user.displayName}</span>
                                 <span className="text-xs text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">مشترك</span>
                             </div>
 

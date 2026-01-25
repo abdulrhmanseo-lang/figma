@@ -4,7 +4,7 @@
 
 import { CompanyContextService } from './CompanyContext';
 import { SystemLogger } from './SystemLogger';
-import type { CompanyContext, TenantFilter } from '../types/multiTenantTypes';
+import type { TenantFilter } from '../types/multiTenantTypes';
 
 // ========================
 // TYPES
@@ -272,7 +272,7 @@ export function validateUpdate<T extends ScopedEntity>(
     // First validate the existing entity access
     const accessCheck = validateEntityAccess(existingEntity);
     if (!accessCheck.success) {
-        return accessCheck as OperationResult<Partial<T>>;
+        return accessCheck as unknown as OperationResult<Partial<T>>;
     }
 
     // Prevent company_id change

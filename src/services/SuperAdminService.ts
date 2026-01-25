@@ -3,7 +3,6 @@
 // NO UI CHANGES - Backend only
 
 import { CompanyContextService, getAllCompanies } from './CompanyContext';
-import { TenantMiddleware } from './TenantMiddleware';
 import { SystemLogger } from './SystemLogger';
 import type {
     Company,
@@ -136,24 +135,24 @@ export function calculateCompanyMetrics(
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Filter by company
-    const companyProperties = properties.filter(p => p.company_id === company.id);
+    const companyProperties = properties.filter(p => p.companyId === company.id);
     const companyUnits = units.filter(u =>
         companyProperties.some(p => p.id === u.propertyId)
     );
-    const companyContracts = contracts.filter(c => c.company_id === company.id);
-    const companyPayments = payments.filter(p => p.company_id === company.id);
-    const companyMaintenance = maintenance.filter(m => m.company_id === company.id);
+    const companyContracts = contracts.filter(c => c.companyId === company.id);
+    const companyPayments = payments.filter(p => p.companyId === company.id);
+    const companyMaintenance = maintenance.filter(m => m.companyId === company.id);
     const companyUsers = users.filter(u => u.companyId === company.id);
 
     // Calculate metrics
-    const occupiedUnits = companyUnits.filter(u => u.status === 'occupied').length;
+    const occupiedUnits = companyUnits.filter(u => u.status === 'rented').length;
     const occupancyRate = companyUnits.length > 0
         ? (occupiedUnits / companyUnits.length) * 100
         : 0;
 
     const activeContracts = companyContracts.filter(c => c.status === 'active').length;
 
-    const pendingPayments = companyPayments.filter(p => p.status === 'pending').length;
+    const pendingPayments = companyPayments.filter(p => p.status === 'due').length;
     const overduePayments = companyPayments.filter(p => {
         if (p.status === 'paid') return false;
         const dueDate = new Date(p.dueDate);

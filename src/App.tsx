@@ -2,10 +2,12 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { TrialTimer } from './components/TrialTimer';
 import { Toaster } from 'sonner';
+import { Omnibox } from './components/Omnibox';
 
 // Lazy load pages for better performance
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -29,7 +31,6 @@ const Payments = lazy(() => import('./pages/Payments').then(m => ({ default: m.P
 const Maintenance = lazy(() => import('./pages/Maintenance').then(m => ({ default: m.Maintenance })));
 const Reports = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
-const Billing = lazy(() => import('./pages/Billing').then(m => ({ default: m.Billing })));
 const Employees = lazy(() => import('./pages/Employees').then(m => ({ default: m.Employees })));
 const Tasks = lazy(() => import('./pages/Tasks').then(m => ({ default: m.Tasks })));
 const Sales = lazy(() => import('./pages/Sales').then(m => ({ default: m.Sales })));
@@ -63,133 +64,136 @@ function App() {
   return (
     <div dir="rtl" className="font-cairo">
       <AuthProvider>
-        <DataProvider>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/features" element={<FeaturesPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/units" element={<UnitsPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
+        <LanguageProvider>
+          <DataProvider>
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/features" element={<FeaturesPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/units" element={<UnitsPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
 
-              {/* Legacy Dashboard Route - Redirect to /app */}
-              <Route path="/dashboard" element={<Navigate to="/app" replace />} />
+                {/* Legacy Dashboard Route - Redirect to /app */}
+                <Route path="/dashboard" element={<Navigate to="/app" replace />} />
 
-              {/* Protected App Routes */}
-              <Route path="/app" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/properties" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Properties />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/units" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Units />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/tenants" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Tenants />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/contracts" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Contracts />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/payments" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Payments />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/maintenance" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Maintenance />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/reports" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Reports />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/settings" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Settings />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ProfilePage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/employees" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Employees />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/tasks" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Tasks />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/app/sales" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Sales />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
+                {/* Protected App Routes */}
+                <Route path="/app" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/properties" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Properties />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/units" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Units />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/tenants" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Tenants />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/contracts" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Contracts />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/payments" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Payments />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/maintenance" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Maintenance />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/reports" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Reports />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/settings" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Settings />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <ProfilePage />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/employees" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Employees />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/tasks" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Tasks />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/app/sales" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Sales />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
 
-              {/* Employee Portal Routes */}
-              <Route path="/employee/login" element={<EmployeeLoginPage />} />
-              <Route path="/employee/dashboard" element={<EmployeeLayout><EmployeeDashboard /></EmployeeLayout>} />
-              <Route path="/employee/properties" element={<EmployeeLayout><Properties /></EmployeeLayout>} />
-              <Route path="/employee/units" element={<EmployeeLayout><Units /></EmployeeLayout>} />
-              <Route path="/employee/tenants" element={<EmployeeLayout><Tenants /></EmployeeLayout>} />
-              <Route path="/employee/contracts" element={<EmployeeLayout><Contracts /></EmployeeLayout>} />
-              <Route path="/employee/payments" element={<EmployeeLayout><Payments /></EmployeeLayout>} />
-              <Route path="/employee/maintenance" element={<EmployeeLayout><Maintenance /></EmployeeLayout>} />
-              <Route path="/employee/reports" element={<EmployeeLayout><Reports /></EmployeeLayout>} />
-              <Route path="/employee/tasks" element={<EmployeeLayout><Tasks /></EmployeeLayout>} />
-            </Routes>
-          </Suspense>
-          <Toaster position="top-center" richColors />
-          <TrialTimer />
-        </DataProvider>
+                {/* Employee Portal Routes */}
+                <Route path="/employee/login" element={<EmployeeLoginPage />} />
+                <Route path="/employee/dashboard" element={<EmployeeLayout><EmployeeDashboard /></EmployeeLayout>} />
+                <Route path="/employee/properties" element={<EmployeeLayout><Properties /></EmployeeLayout>} />
+                <Route path="/employee/units" element={<EmployeeLayout><Units /></EmployeeLayout>} />
+                <Route path="/employee/tenants" element={<EmployeeLayout><Tenants /></EmployeeLayout>} />
+                <Route path="/employee/contracts" element={<EmployeeLayout><Contracts /></EmployeeLayout>} />
+                <Route path="/employee/payments" element={<EmployeeLayout><Payments /></EmployeeLayout>} />
+                <Route path="/employee/maintenance" element={<EmployeeLayout><Maintenance /></EmployeeLayout>} />
+                <Route path="/employee/reports" element={<EmployeeLayout><Reports /></EmployeeLayout>} />
+                <Route path="/employee/tasks" element={<EmployeeLayout><Tasks /></EmployeeLayout>} />
+              </Routes>
+            </Suspense>
+            <Toaster position="top-center" richColors />
+            <TrialTimer />
+            <Omnibox />
+          </DataProvider>
+        </LanguageProvider>
       </AuthProvider>
     </div>
   );

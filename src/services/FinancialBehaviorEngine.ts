@@ -65,6 +65,13 @@ export interface FinancialHealth {
     recommendations: { en: string; ar: string }[];
 }
 
+export interface CashFlowForecast {
+    labels: string[];
+    expected: number[];
+    projected: number[]; // Adjusted for historical collection rate
+    expenses: number[];
+}
+
 export interface GracePeriodConfig {
     standardDays: number;
     warningThreshold: number; // days before grace ends
@@ -484,6 +491,49 @@ export function detectPaymentIssues(
 }
 
 // ========================
+// CASH FLOW FORECASTING
+// ========================
+
+export function calculateCashFlowForecast(
+    contracts: Contract[],
+    payments: Payment[]
+): CashFlowForecast {
+    // Calculate real historical collection rate
+    const recentPayments = payments.slice(-50); // Look at last 50 payments
+    const collected = recentPayments.filter(p => p.status === 'paid').length;
+    const historicalCollectionRate = recentPayments.length > 0 ? collected / recentPayments.length : 0.95;
+
+    const labels: string[] = [];
+    const expected: number[] = [];
+    const projected: number[] = [];
+    const expenses: number[] = [];
+
+    const now = new Date();
+
+    for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const monthAr = d.toLocaleDateString('ar-SA', { month: 'long' });
+        labels.push(monthAr);
+
+        // Sum up all contract rents active in this month
+        let monthExpected = 0;
+        contracts.forEach(c => {
+            const start = new Date(c.startDate);
+            const end = new Date(c.endDate);
+            if (d >= start && d <= end && c.status === 'active') {
+                monthExpected += c.rentAmount;
+            }
+        });
+
+        expected.push(monthExpected);
+        projected.push(Math.round(monthExpected * historicalCollectionRate));
+        expenses.push(Math.round(monthExpected * 0.15)); // Estimate 15% expenses
+    }
+
+    return { labels, expected, projected, expenses };
+}
+
+// ========================
 // EXPORT
 // ========================
 
@@ -496,6 +546,7 @@ export const FinancialBehaviorEngine = {
     analyzeTenantPaymentHistory,
     calculatePropertyCashFlow,
     assessFinancialHealth,
+    calculateCashFlowForecast,
 
     // Detection
     detectPaymentIssues

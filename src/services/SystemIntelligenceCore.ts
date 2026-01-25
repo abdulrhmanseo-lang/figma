@@ -4,10 +4,9 @@
 
 import type { Property, Unit, Contract, Payment, MaintenanceRequest } from '../types/database';
 import { SystemLogger } from './SystemLogger';
-import { FinancialBehaviorEngine, type FinancialHealth, type PropertyCashFlow } from './FinancialBehaviorEngine';
+import { FinancialBehaviorEngine, type FinancialHealth } from './FinancialBehaviorEngine';
 import { RuleEngine } from './RuleEngine';
 import { MaintenanceIntelligenceEngine } from './MaintenanceIntelligenceEngine';
-import { ReportsIntelligenceEngine } from './ReportsIntelligenceEngine';
 
 // ========================
 // TYPES
@@ -170,7 +169,7 @@ export function evaluateProperty(
     let score = 100;
 
     // 1. Occupancy Check
-    const occupiedUnits = propertyUnits.filter(u => u.status === 'occupied').length;
+    const occupiedUnits = propertyUnits.filter(u => u.status === 'rented').length;
     const occupancyRate = propertyUnits.length > 0
         ? (occupiedUnits / propertyUnits.length) * 100
         : 0;
